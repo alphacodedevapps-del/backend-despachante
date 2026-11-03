@@ -64,11 +64,19 @@ function extractJson(text: string): unknown {
 }
 
 async function loadRecord(type: string, id: string) {
-  const entity = ENTITY_MAP[type];
-  if (!entity || !UUID.test(id)) return null;
+  if (!UUID.test(id)) return null;
   const ctx = await getSessionContext();
   if (!ctx) return null;
   const supabase = await createClient();
+  if (type === "documents") {
+    const { data: doc } = await supabase.from("documents").select("id, title, description, tags").eq("id", id).eq("workspace_id", ctx.workspace.id).maybeSingle();
+    if (!doc) return null;
+    const { data: chunks } = await supabase.from("document_chunks").select("content").eq("document_id", id).order("chunk_index").limit(4);
+    const text = [doc.description, ...((chunks ?? []) as { content: string }[]).map((c) => c.content)].filter(Boolean).join("\n\n").slice(0, 8000);
+    return { entity: { key: "documents", singular: "Documento", titleField: "title" }, row: doc as Record<string, unknown>, title: String(doc.title), text, ctx, supabase };
+  }
+  const entity = ENTITY_MAP[type];
+  if (!entity) return null;
   const { data } = await supabase.from(entity.key).select("*").eq("id", id).eq("workspace_id", ctx.workspace.id).maybeSingle();
   if (!data) return null;
   const row = data as Record<string, unknown>;
