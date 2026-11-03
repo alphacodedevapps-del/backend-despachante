@@ -31,11 +31,12 @@
   --info: #2e6fb5;
   --info-soft: #e8f1fb;
   --shadow-color: 220 30% 20%;
+  /* Paleta categórica validada (CVD/contraste) — ordem fixa */
   --chart-1: #3659a8;
   --chart-2: #2a9d8f;
-  --chart-3: #e09f3e;
+  --chart-3: #c47f1a;
   --chart-4: #9c6ade;
-  --chart-5: #d1495b;
+  --chart-grid: #e6eaf0;
   color-scheme: light;
 }
 
@@ -64,11 +65,11 @@
   --info: #7cb4f2;
   --info-soft: #1b2e48;
   --shadow-color: 222 50% 3%;
-  --chart-1: #7899e8;
-  --chart-2: #4cc3b3;
-  --chart-3: #f0b45a;
-  --chart-4: #b892f0;
-  --chart-5: #f2766b;
+  --chart-1: #6b8de3;
+  --chart-2: #2a9f90;
+  --chart-3: #bd7f22;
+  --chart-4: #9d78e0;
+  --chart-grid: #29354a;
   color-scheme: dark;
 }
 
@@ -100,7 +101,6 @@
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --radius-sm: 6px;
   --radius-md: 8px;
