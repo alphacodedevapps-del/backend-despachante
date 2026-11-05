@@ -41,7 +41,7 @@ export default async function AssistantPage({ searchParams }: { searchParams: Pr
       <PageHeader title="Assistente acadêmico" description={ai.chatConfigured ? `IA integrada aos seus materiais · ${ai.chatProvider}${ai.embeddingModel ? " · busca semântica ativa" : " · busca textual"}` : "IA integrada aos seus materiais"} icon="Sparkles"
         actions={<Link href="/assistente" className={buttonVariants()}><Plus /> Nova conversa</Link>} />
       <div className="grid gap-4 lg:grid-cols-[280px_minmax(0,1fr)]">
-        <aside className="space-y-3">
+        <aside className="order-2 space-y-3 lg:order-none">
           <form action="/assistente" className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <input name="q" defaultValue={sp.q ?? ""} placeholder="Pesquisar conversas…" className="h-9 w-full rounded-md border border-input bg-surface pl-9 pr-3 text-sm" aria-label="Pesquisar conversas" />

@@ -39,6 +39,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <Comp
         ref={ref}
         type={asChild ? undefined : (type ?? "button")}
+        data-icon-only={size === "icon" || size === "icon-sm" ? "" : undefined}
         className={cn(buttonVariants({ variant, size }), className)}
         {...props}
       />

@@ -78,7 +78,7 @@ export default async function LibraryPage({ searchParams }: { searchParams: Prom
         }
       />
       <div className="grid gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
-        <aside className="space-y-4">
+        <aside className="order-2 space-y-4 lg:order-none">
           <nav aria-label="Pastas" className="rounded-lg border border-border bg-surface p-2">
             <Link href="/biblioteca" className={cn("flex items-center gap-2 rounded-md px-2 py-1 text-sm hover:bg-surface-muted", !folderId && !subjectId && !category && "bg-primary-soft text-primary")}><Folder className="size-4" /> Raiz</Link>
             <ul className="mt-1">{renderTree(null, 0)}</ul>

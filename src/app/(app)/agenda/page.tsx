@@ -95,15 +95,15 @@ export default async function AgendaPage({ searchParams }: { searchParams: Promi
           <Link href={href({ data: format(prev, "yyyy-MM-dd") })} className={buttonVariants({ variant: "outline", size: "icon" })} aria-label="Anterior"><ChevronLeft /></Link>
           <Link href={href({ data: format(new Date(), "yyyy-MM-dd") })} className={buttonVariants({ variant: "outline" })}>Hoje</Link>
           <Link href={href({ data: format(next, "yyyy-MM-dd") })} className={buttonVariants({ variant: "outline", size: "icon" })} aria-label="Próximo"><ChevronRight /></Link>
-          <h2 className="ml-2 text-base font-semibold capitalize">{title}</h2>
+          <h2 className="ml-1 min-w-0 truncate text-sm font-semibold capitalize sm:ml-2 sm:text-base">{title}</h2>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <div className="inline-flex rounded-lg bg-surface-muted p-1" role="tablist" aria-label="Visualização">
+        <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:flex-wrap">
+          <div className="inline-flex w-full rounded-lg bg-surface-muted p-1 sm:w-auto [&>a]:flex-1 [&>a]:text-center" role="tablist" aria-label="Visualização">
             {[["mes", "Mês"], ["semana", "Semana"], ["dia", "Dia"]].map(([v, l]) => (
               <Link key={v} role="tab" aria-selected={view === v} href={href({ visao: v })} className={cn("rounded-md px-3 py-1 text-sm font-medium text-muted-foreground", view === v && "bg-surface text-foreground shadow-card")}>{l}</Link>
             ))}
           </div>
-          <div className="flex flex-wrap gap-1">
+          <div className="-mx-4 flex gap-1 overflow-x-auto px-4 pb-1 scrollbar-thin sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 [&>a]:shrink-0">
             <Link href={href({ categoria: undefined })} className={cn("rounded-full border px-2.5 py-1 text-xs", !cat ? "border-primary bg-primary-soft text-primary" : "border-border")}>Todas</Link>
             {AGENDA_CATEGORIES.map((c) => (
               <Link key={c.value} href={href({ categoria: c.value })} className={cn("rounded-full border px-2.5 py-1 text-xs", cat === c.value ? "border-primary bg-primary-soft text-primary" : "border-border")}>{c.label}</Link>

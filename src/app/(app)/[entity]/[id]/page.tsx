@@ -74,14 +74,14 @@ export default async function EntityDetailPage({ params }: { params: Params }) {
           <>
             {entity.favorites && <FavoriteButton entityKey={entity.key} id={row.id} value={Boolean(row.is_favorite)} disabled={!editable} />}
             <Link href={`/assistente?contexto=${entity.key}:${row.id}`} className={buttonVariants({ variant: "outline" })}>
-              <Sparkles /> Perguntar à IA
+              <Sparkles /> <span className="sm:hidden">IA</span><span className="hidden sm:inline">Perguntar à IA</span>
             </Link>
             {editable && (
               <Link href={`/${entity.slug}/${row.id}/editar`} className={buttonVariants()}>
                 <Pencil /> Editar
               </Link>
             )}
-            {editable && <DeleteRecordButton entityKey={entity.key} id={row.id} label={title} redirectTo={`/${entity.slug}`} />}
+            {editable && <DeleteRecordButton entityKey={entity.key} id={row.id} label={title} redirectTo={`/${entity.slug}`} compactOnMobile />}
           </>
         }
       />

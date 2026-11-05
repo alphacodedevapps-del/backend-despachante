@@ -49,29 +49,30 @@ export function ListToolbar({ filters, favorites, placeholder }: { filters: Filt
         <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={placeholder ?? "Pesquisar…"} className="pl-9" aria-label="Pesquisar" />
       </div>
-      <div className="flex flex-wrap gap-2">
+      <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
         {filters.map((f) => (
           <NativeSelect
             key={f.name}
             aria-label={f.label}
             value={params.get(f.name) ?? ""}
             onChange={(e) => update({ [f.name]: e.target.value || null })}
-            className="h-9 w-auto min-w-36"
+            className="h-9 w-full min-w-0 sm:w-auto sm:min-w-36"
           >
-            <option value="">{f.label}: todos</option>
+            <option value="">{f.label}</option>
             {f.options.map((o) => (
               <option key={o.value} value={o.value}>{o.label}</option>
             ))}
           </NativeSelect>
         ))}
         {favorites && (
-          <Button variant={favOn ? "secondary" : "outline"} onClick={() => update({ fav: favOn ? null : "1" })} aria-pressed={favOn}>
+          <Button variant={favOn ? "secondary" : "outline"} onClick={() => update({ fav: favOn ? null : "1" })} aria-pressed={favOn} className="w-full sm:w-auto">
             <Star className={cn(favOn && "fill-current text-warning")} /> Favoritos
           </Button>
         )}
         {(activeFilters.length > 0 || favOn || params.get("q")) && (
           <Button
             variant="ghost"
+            className="w-full sm:w-auto"
             onClick={() => {
               setQ("");
               router.replace(pathname);

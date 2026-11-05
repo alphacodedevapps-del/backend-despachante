@@ -10,12 +10,14 @@ import { Tooltip } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils/cn";
 import { deleteRecordAction, patchRecordAction } from "../actions";
 
-export function DeleteRecordButton({ entityKey, id, label, redirectTo, iconOnly }: {
+export function DeleteRecordButton({ entityKey, id, label, redirectTo, iconOnly, compactOnMobile }: {
   entityKey: string;
   id: string;
   label: string;
   redirectTo?: string;
   iconOnly?: boolean;
+  /** No celular mostra só o ícone (cabeçalhos com vários botões). */
+  compactOnMobile?: boolean;
 }) {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
@@ -28,8 +30,8 @@ export function DeleteRecordButton({ entityKey, id, label, redirectTo, iconOnly 
             <Trash2 />
           </Button>
         ) : (
-          <Button variant="danger-ghost">
-            <Trash2 /> Excluir
+          <Button variant="danger-ghost" aria-label={`Excluir ${label}`} data-icon-only={compactOnMobile ? "" : undefined} className={compactOnMobile ? "max-sm:px-2.5" : undefined}>
+            <Trash2 /> <span className={compactOnMobile ? "hidden sm:inline" : undefined}>Excluir</span>
           </Button>
         )}
       </DialogTrigger>
