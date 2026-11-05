@@ -15,10 +15,6 @@ import { entityHref, entityTypeIcon, entityTypeLabel, SEARCHABLE_TYPES } from "@
 import { addLinkAction, removeLinkAction, searchLinkTargetsAction, type SearchHit } from "./actions";
 import type { LinkedItem } from "./queries";
 
-export interface SuggestionProvider {
-  (): Promise<{ ok: true; data: SearchHit[] } | { ok: false; error: string }>;
-}
-
 export function RelatedContent({ type, id, items, canEdit, suggest, aiAvailable }: {
   type: string;
   id: string;
@@ -122,10 +118,7 @@ function AddLinkDialog({ type, id, existing }: { type: string; id: string; exist
 
   React.useEffect(() => {
     if (!open) return;
-    if (q.trim().length < 2) {
-      setHits([]);
-      return;
-    }
+    if (q.trim().length < 2) return;
     const handle = setTimeout(async () => {
       setLoading(true);
       const res = await searchLinkTargetsAction(q, t ? [t] : null);
@@ -157,7 +150,7 @@ function AddLinkDialog({ type, id, existing }: { type: string; id: string; exist
           {loading && <p className="flex items-center gap-2 p-2 text-sm text-muted-foreground"><Loader2 className="size-4 animate-spin" /> Pesquisando…</p>}
           {!loading && q.trim().length >= 2 && hits.length === 0 && <p className="p-2 text-sm text-muted-foreground">Nenhum resultado.</p>}
           <ul className="divide-y divide-border">
-            {hits.map((h) => {
+            {(q.trim().length < 2 ? [] : hits).map((h) => {
               const key = `${h.type}:${h.id}`;
               const already = linked.has(key);
               return (

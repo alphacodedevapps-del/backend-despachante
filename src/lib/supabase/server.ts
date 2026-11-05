@@ -5,8 +5,9 @@ import { requireSupabaseEnv } from "./env";
 
 /** Cliente Supabase para Server Components, Server Actions e Route Handlers (sessão do usuário, RLS aplicada). */
 export async function createClient() {
-  const { url, anonKey } = requireSupabaseEnv();
+  // Ler os cookies primeiro torna a rota dinâmica (nunca pré-renderizada sem sessão).
   const cookieStore = await cookies();
+  const { url, anonKey } = requireSupabaseEnv();
   return createServerClient(url, anonKey, {
     cookies: {
       getAll() {

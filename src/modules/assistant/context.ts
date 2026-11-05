@@ -1,6 +1,6 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { ENTITY_MAP, LINKABLE_TYPES, optionLabel } from "@/modules/entities/definitions";
+import { ENTITY_MAP, optionLabel } from "@/modules/entities/definitions";
 import { entityHref, entityTypeLabel } from "@/modules/entities/links";
 import { embedTexts, embeddingsAvailable, toPgVector } from "@/lib/ai";
 
@@ -23,14 +23,7 @@ export interface RetrievedContext {
   embeddingTokens: number;
 }
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-export function parseContextRef(ref: string | null | undefined): { type: string; id: string } | null {
-  if (!ref) return null;
-  const [type, id] = ref.split(":");
-  if (!type || !id || !UUID_RE.test(id) || !(LINKABLE_TYPES as readonly string[]).includes(type)) return null;
-  return { type, id };
-}
+export { parseContextRef } from "./context-ref";
 
 /** Serializa um registro (somente campos preenchidos) para o contexto. */
 export function recordToText(type: string, row: Record<string, unknown>, maxChars = 6000): string {
@@ -53,7 +46,7 @@ export function recordToText(type: string, row: Record<string, unknown>, maxChar
   return parts.join("\n").slice(0, maxChars);
 }
 
-function escapeForPrompt(s: string): string {
+export function escapeForPrompt(s: string): string {
   // Impede que o conteúdo do documento feche as tags de fonte e injete instruções estruturais.
   return s.replace(/<\/?\s*fonte[^>]*>/gi, "[tag removida]");
 }

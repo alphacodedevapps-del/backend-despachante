@@ -44,11 +44,7 @@ export function GlobalSearch({ workspaceNames }: { workspaceNames: Record<string
 
   React.useEffect(() => {
     if (!open) return;
-    if (q.trim().length < 2) {
-      setHits([]);
-      setError(null);
-      return;
-    }
+    if (q.trim().length < 2) return;
     const t = setTimeout(async () => {
       setLoading(true);
       const res = await globalSearchAction(q, all, type ? [type] : null);
@@ -62,7 +58,8 @@ export function GlobalSearch({ workspaceNames }: { workspaceNames: Record<string
     return () => clearTimeout(t);
   }, [q, all, type, open]);
 
-  const grouped = useGroupedHits(hits);
+  const shown = q.trim().length < 2 ? [] : hits;
+  const grouped = useGroupedHits(shown);
   const flat = grouped.flatMap(([, list]) => list);
 
   const go = (h: GlobalSearchHit) => {
@@ -126,7 +123,7 @@ export function GlobalSearch({ workspaceNames }: { workspaceNames: Record<string
           </div>
           <div className="max-h-[60vh] overflow-y-auto p-2">
             {error && <p className="p-3 text-sm text-danger">{error}</p>}
-            {!loading && q.trim().length >= 2 && hits.length === 0 && !error && <p className="p-3 text-sm text-muted-foreground">Nenhum resultado para “{q}”.</p>}
+            {!loading && q.trim().length >= 2 && shown.length === 0 && !error && <p className="p-3 text-sm text-muted-foreground">Nenhum resultado para “{q}”.</p>}
             {q.trim().length < 2 && <p className="p-3 text-sm text-muted-foreground">Digite pelo menos 2 caracteres. Acentos são ignorados.</p>}
             {grouped.map(([t, list]) => (
               <div key={t} className="mb-2">

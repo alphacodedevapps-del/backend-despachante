@@ -39,6 +39,7 @@ const OPTIONS = [
 export function ThemeSwitcher({ className, persist = true }: { className?: string; persist?: boolean }) {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- detecção de montagem para evitar divergência de hidratação
   React.useEffect(() => setMounted(true), []);
   return (
     <div role="radiogroup" aria-label="Tema" className={cn("inline-flex rounded-lg bg-surface-muted p-1", className)}>

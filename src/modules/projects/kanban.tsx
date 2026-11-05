@@ -26,7 +26,6 @@ export function KanbanBoard({ cards: initial }: { cards: KanbanCard[] }) {
   const [cards, setCards] = React.useState(initial);
   const [dragId, setDragId] = React.useState<string | null>(null);
   const [over, setOver] = React.useState<string | null>(null);
-  React.useEffect(() => setCards(initial), [initial]);
 
   const move = async (id: string, status: string) => {
     const card = cards.find((c) => c.id === id);

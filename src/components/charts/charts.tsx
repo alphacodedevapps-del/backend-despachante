@@ -9,8 +9,10 @@ function useChartTokens() {
   const { resolvedTheme } = useTheme();
   const [t, setT] = React.useState({ c: ["#3659a8", "#2a9d8f", "#c47f1a", "#9c6ade"], grid: "#e6eaf0", text: "#667085", surface: "#ffffff", fg: "#182230", border: "#e6eaf0" });
   React.useEffect(() => {
+    // Sincroniza com um sistema externo (variáveis CSS do tema aplicadas no DOM).
     const cs = getComputedStyle(document.documentElement);
     const v = (n: string) => cs.getPropertyValue(n).trim();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setT({
       c: [v("--chart-1"), v("--chart-2"), v("--chart-3"), v("--chart-4")],
       grid: v("--chart-grid"),

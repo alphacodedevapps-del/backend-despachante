@@ -105,6 +105,8 @@ function studyTools(type: string, kinds: ("flashcards" | "questoes" | "resumo" |
   return Ext;
 }
 
+const SubjectTools = studyTools("subjects", ["flashcards", "questoes", "roteiro"]);
+
 async function SubjectExtension(props: ExtensionProps) {
   const { row } = props;
   const supabase = await createClient();
@@ -120,7 +122,6 @@ async function SubjectExtension(props: ExtensionProps) {
   const graded = ((assessments.data ?? []) as { score: number | null; max_score: number | null; weight: number | null }[]).filter((a) => a.score !== null && a.max_score);
   const avg = graded.length ? graded.reduce((s, a) => s + ((a.score as number) / (a.max_score as number)) * 10 * (a.weight || 1), 0) / graded.reduce((s, a) => s + (a.weight || 1), 0) : null;
   const progress = Number(row.learning_progress ?? 0);
-  const Tools = studyTools("subjects", ["flashcards", "questoes", "roteiro"]);
   return (
     <>
       <Card>
@@ -139,7 +140,7 @@ async function SubjectExtension(props: ExtensionProps) {
           </div>
         </CardContent>
       </Card>
-      <Tools {...props} />
+      <SubjectTools {...props} />
     </>
   );
 }
