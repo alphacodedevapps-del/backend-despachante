@@ -4,6 +4,7 @@ import { Layers, Timer } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { progressTone } from "@/lib/domain/status";
 import { createClient } from "@/lib/supabase/server";
 import type { SessionContext } from "@/lib/session";
 import { formatDateTime, formatNumber } from "@/lib/utils/format";
@@ -102,7 +103,7 @@ async function SubjectExtension(props: ExtensionProps) {
       <Card>
         <CardHeader><CardTitle>Progresso de aprendizagem</CardTitle><span className="text-sm font-semibold text-primary tabular-nums">{progress}%</span></CardHeader>
         <CardContent className="space-y-4">
-          <Progress value={progress} label="Progresso da disciplina" />
+          <Progress value={progress} tone={progressTone(progress)} label="Progresso da disciplina" />
           <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
             <div><dt className="text-xs text-muted-foreground">Conteúdos estudados</dt><dd className="text-lg font-semibold tabular-nums">{studied}</dd></div>
             <div><dt className="text-xs text-muted-foreground">Conteúdos pendentes</dt><dd className="text-lg font-semibold tabular-nums">{pending}</dd></div>

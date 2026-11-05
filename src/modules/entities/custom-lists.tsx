@@ -51,9 +51,9 @@ async function FlashcardsBanner({ ctx }: Props) {
   const supabase = await createClient();
   const { count } = await supabase.from("flashcards").select("id", { count: "exact", head: true }).eq("workspace_id", ctx.workspace.id).lte("next_review_at", new Date().toISOString());
   return (
-    <Card className="mb-4">
+    <Card className={`mb-4 border-l-4 ${(count ?? 0) > 0 ? "border-l-warning bg-warning-soft" : "border-l-success bg-success-soft"}`}>
       <CardContent className="flex flex-col gap-3 pt-5 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm"><strong className="text-lg tabular-nums">{count ?? 0}</strong> cartão(ões) aguardando revisão hoje.</p>
+        <p className="text-sm">{(count ?? 0) > 0 ? <><strong className="text-lg tabular-nums text-warning">{count}</strong> cartão(ões) aguardando revisão hoje.</> : <span className="font-medium text-success">Tudo revisado por hoje ✓</span>}</p>
         <Link href="/revisao-flashcards" className={buttonVariants()}><Layers /> Iniciar revisão</Link>
       </CardContent>
     </Card>

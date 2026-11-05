@@ -3,6 +3,7 @@ import Link from "next/link";
 import { CalendarClock, Plus } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { DEADLINE_LEGEND, TONE_BG, TONE_TEXT, deadlineTone, progressTone } from "@/lib/domain/status";
 import { Icon } from "@/components/shared/icon";
 import { StatTile, ListCard, ListRow } from "@/components/dashboard/widgets";
 import { TrendLines, ChartTable } from "@/components/charts/charts";
@@ -49,15 +50,21 @@ export default async function DashboardPage() {
         <p className="text-sm text-muted-foreground">Workspace: <span className="text-foreground">{ctx.workspace.name}</span></p>
       </div>
 
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground" aria-label="Legenda de prazos">
+        <span className="font-medium text-foreground">Prazos:</span>
+        {DEADLINE_LEGEND.map((l) => (
+          <span key={l.label} className="inline-flex items-center gap-1.5"><span className={`size-2.5 rounded-full ${TONE_BG[l.tone]}`} />{l.label}</span>
+        ))}
+      </div>
       <section aria-label="Indicadores" className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <StatTile label="Disciplinas" value={d.stats.subjects} icon="BookOpen" href="/disciplinas" />
-        <StatTile label="Artigos científicos" value={d.stats.articles} icon="FileText" href="/artigos" />
-        <StatTile label="Casos clínicos" value={d.stats.cases} icon="HeartPulse" href="/casos-clinicos" />
+        <StatTile label="Disciplinas" value={d.stats.subjects} icon="BookOpen" href="/disciplinas" tone="primary" />
+        <StatTile label="Artigos científicos" value={d.stats.articles} icon="FileText" href="/artigos" tone="info" />
+        <StatTile label="Casos clínicos" value={d.stats.cases} icon="HeartPulse" href="/casos-clinicos" tone="primary" />
         <StatTile label="Patologias estudadas" value={d.stats.pathologiesStudied} icon="Activity" href="/patologias?study_status=estudado" hint={`de ${d.stats.pathologies} cadastradas`} />
-        <StatTile label="Exercícios" value={d.stats.exercises} icon="Dumbbell" href="/exercicios" />
-        <StatTile label="Tarefas pendentes" value={d.stats.pendingTasks} icon="ListChecks" href="/tarefas?status=pendente" />
-        <StatTile label="Projetos em andamento" value={d.stats.activeProjects} icon="KanbanSquare" href="/projetos" />
-        <StatTile label="Anotações" value={d.stats.notes} icon="NotebookPen" href="/caderno" />
+        <StatTile label="Exercícios" value={d.stats.exercises} icon="Dumbbell" href="/exercicios" tone="info" />
+        <StatTile label="Tarefas pendentes" value={d.stats.pendingTasks} icon="ListChecks" href="/tarefas?status=pendente" tone={d.stats.overdueTasks > 0 ? "danger" : d.stats.pendingTasks > 0 ? "warning" : "success"} hint={d.stats.overdueTasks > 0 ? `${d.stats.overdueTasks} atrasada(s)` : undefined} />
+        <StatTile label="Projetos em andamento" value={d.stats.activeProjects} icon="KanbanSquare" href="/projetos" tone="info" />
+        <StatTile label="Anotações" value={d.stats.notes} icon="NotebookPen" href="/caderno" tone="primary" />
       </section>
 
       {canWrite(ctx.workspace.role) && (
@@ -93,7 +100,7 @@ export default async function DashboardPage() {
 
         <ListCard title="Próximas provas" href="/provas" empty="Nenhuma avaliação nos próximos 30 dias.">
           {d.exams.map((e) => (
-            <ListRow key={e.href} href={e.href} title={e.title} meta={<span className="inline-flex items-center gap-1"><CalendarClock className="size-3" /> {formatDateTime(e.date)} · {formatRelative(e.date)}</span>} />
+            <ListRow key={e.href} href={e.href} title={e.title} meta={<span className="inline-flex items-center gap-1"><CalendarClock className="size-3" /> {formatDateTime(e.date)} · {formatRelative(e.date)}</span>} right={<span className={`size-2.5 rounded-full ${TONE_BG[deadlineTone(e.date)]}`} aria-label={deadlineTone(e.date) === "warning" ? "Atenção" : deadlineTone(e.date) === "danger" ? "Atrasado" : "Em dia"} />} />
           ))}
         </ListCard>
       </div>
@@ -101,7 +108,7 @@ export default async function DashboardPage() {
       <div className="grid gap-6 lg:grid-cols-3">
         <ListCard title="Atividades pendentes" href="/tarefas" empty="Nenhuma tarefa pendente.">
           {d.tasks.map((t) => (
-            <ListRow key={t.id} href={`/tarefas/${t.id}`} title={t.title} meta={t.due_at ? `Prazo ${formatDateTime(t.due_at)}` : "Sem prazo"} right={<Badge tone={toneFor(t.priority)}>{t.priority}</Badge>} />
+            <ListRow key={t.id} href={`/tarefas/${t.id}`} title={t.title} meta={t.due_at ? `Prazo ${formatDateTime(t.due_at)}` : "Sem prazo"} right={<Badge tone={deadlineTone(t.due_at, t.status)}>{deadlineTone(t.due_at, t.status) === "danger" ? "Atrasada" : deadlineTone(t.due_at, t.status) === "warning" ? "Breve" : deadlineTone(t.due_at, t.status) === "success" ? "Em dia" : t.priority}</Badge>} />
           ))}
         </ListCard>
         <ListCard title="Trabalhos próximos do prazo" href="/projetos" empty="Nenhum prazo nas próximas 3 semanas.">

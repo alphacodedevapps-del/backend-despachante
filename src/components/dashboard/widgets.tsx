@@ -2,13 +2,17 @@ import type * as React from "react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Icon } from "@/components/shared/icon";
+import { cn } from "@/lib/utils/cn";
+import { TONE_BORDER, TONE_SOFT, TONE_TEXT, type Tone } from "@/lib/domain/status";
 
-export function StatTile({ label, value, icon, href, hint }: { label: string; value: string | number; icon: string; href: string; hint?: string }) {
+export function StatTile({ label, value, icon, href, hint, tone = "primary" }: { label: string; value: string | number; icon: string; href: string; hint?: string; tone?: Tone }) {
   return (
-    <Link href={href} className="group rounded-lg border border-border bg-surface p-4 shadow-card transition-colors hover:border-primary/40">
+    <Link href={href} className={cn("group rounded-lg border border-border border-l-4 bg-surface p-4 shadow-card transition-colors hover:shadow-pop", TONE_BORDER[tone])}>
       <div className="flex items-center justify-between">
         <p className="text-xs font-medium text-muted-foreground">{label}</p>
-        <Icon name={icon} className="size-4 text-muted-foreground group-hover:text-primary" />
+        <span className={cn("flex size-7 items-center justify-center rounded-md", TONE_SOFT[tone], TONE_TEXT[tone])}>
+          <Icon name={icon} className="size-4" />
+        </span>
       </div>
       <p className="mt-2 text-2xl font-semibold tabular-nums tracking-tight">{value}</p>
       {hint && <p className="mt-0.5 text-xs text-muted-foreground">{hint}</p>}

@@ -60,7 +60,7 @@ export async function getDashboardData(workspaceId: string) {
     return supabase.from(table).select("id", { count: "exact", head: true }).eq("workspace_id", workspaceId);
   }
 
-  const [subjects, articles, cases, pathologies, pathologiesStudied, exercises, pendingTasks, activeProjects, notesCount] = await Promise.all([
+  const [subjects, articles, cases, pathologies, pathologiesStudied, exercises, pendingTasks, activeProjects, notesCount, overdueTasks] = await Promise.all([
     count("subjects"),
     count("articles"),
     count("clinical_cases"),
@@ -68,6 +68,7 @@ export async function getDashboardData(workspaceId: string) {
     count("pathologies", (q) => q.eq("study_status", "estudado")),
     count("exercises"),
     count("tasks", (q) => q.in("status", ["pendente", "em_andamento"])),
+    count("tasks", (q) => q.in("status", ["pendente", "em_andamento"]).lt("due_at", new Date().toISOString())),
     count("projects", (q) => q.in("status", ["em_andamento", "em_revisao"])),
     count("study_notes"),
   ]);
@@ -109,7 +110,7 @@ export async function getDashboardData(workspaceId: string) {
   const week = await getAgenda(workspaceId, startOfDay(now), addDays(startOfDay(now), 7));
 
   return {
-    stats: { subjects, articles, cases, pathologies, pathologiesStudied, exercises, pendingTasks, activeProjects, notes: notesCount },
+    stats: { subjects, articles, cases, pathologies, pathologiesStudied, exercises, pendingTasks, overdueTasks, activeProjects, notes: notesCount },
     exams: [
       ...((exams.data ?? []) as { id: string; title: string; assessment_date: string }[]).map((e) => ({ id: e.id, title: e.title, date: e.assessment_date, href: `/provas/${e.id}` })),
       ...((examEvents.data ?? []) as { id: string; title: string; start_at: string }[]).map((e) => ({ id: e.id, title: e.title, date: e.start_at, href: `/eventos/${e.id}` })),

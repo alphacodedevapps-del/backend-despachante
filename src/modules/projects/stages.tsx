@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { formatDate } from "@/lib/utils/format";
+import { progressTone, TONE_TEXT } from "@/lib/domain/status";
 import { addStageAction, deleteStageAction, updateStageAction } from "./actions";
 
 export interface Stage {
@@ -43,10 +44,10 @@ export function ProjectStages({ projectId, stages, editable }: { projectId: stri
           <CardTitle>Etapas do projeto</CardTitle>
           <CardDescription>{done} de {stages.length} concluídas</CardDescription>
         </div>
-        <span className="text-sm font-semibold tabular-nums text-primary">{Math.round(pct)}%</span>
+        <span className={`text-sm font-semibold tabular-nums ${TONE_TEXT[progressTone(pct)]}`}>{Math.round(pct)}%</span>
       </CardHeader>
       <CardContent className="space-y-3">
-        <Progress value={pct} label="Progresso do projeto" />
+        <Progress value={pct} tone={progressTone(pct)} label="Progresso do projeto" />
         <ul className="divide-y divide-border">
           {stages.map((s, i) => (
             <li key={s.id} className="flex items-center gap-2 py-2">

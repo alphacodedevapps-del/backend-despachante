@@ -3,6 +3,8 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { buttonVariants } from "@/components/ui/button";
 import { canEditRow, canWrite, type WorkspaceRole } from "@/lib/permissions";
 import { formatRelative } from "@/lib/utils/format";
+import { cn } from "@/lib/utils/cn";
+import { DONE_STATUSES, TONE_BORDER, TONE_TEXT, deadlineTone, type Tone } from "@/lib/domain/status";
 import type { ResolvedRoute } from "../resolve";
 import type { ListResult } from "../queries";
 import { recordTitle } from "../queries";
@@ -20,6 +22,16 @@ export function EntityTable({ route, result, userId, role, hasQuery }: {
   const titleField = entity.fields.find((f) => f.name === entity.titleField)!;
   const columns = entity.fields.filter((f) => f.list && f.name !== entity.titleField && f.name !== entity.statusField).slice(0, 4);
   const statusField = entity.statusField ? entity.fields.find((f) => f.name === entity.statusField) : undefined;
+  // Semáforo de prazo: só para itens com data e situação de conclusão.
+  const trackDeadline = Boolean(entity.dateField && entity.statusField);
+  const deadlineOf = (row: Record<string, unknown>): { tone: Tone; label: string | null } | null => {
+    if (!trackDeadline) return null;
+    const status = String(row[entity.statusField!] ?? "");
+    const tone = deadlineTone(row[entity.dateField!] as string | null, status);
+    if (DONE_STATUSES.has(status)) return { tone, label: null };
+    const label = tone === "danger" ? "Atrasado" : tone === "warning" ? "Vence em breve" : tone === "success" ? "Em dia" : null;
+    return { tone, label };
+  };
 
   if (result.rows.length === 0) {
     return hasQuery ? (
@@ -60,11 +72,12 @@ export function EntityTable({ route, result, userId, role, hasQuery }: {
               const editable = canEditRow(role, row.created_by, userId);
               return (
                 <tr key={row.id} className="hover:bg-surface-muted/50">
-                  <td className="max-w-md px-4 py-2.5">
+                  <td className={cn("max-w-md px-4 py-2.5", deadlineOf(row) && "border-l-4", deadlineOf(row) && TONE_BORDER[deadlineOf(row)!.tone])}>
                     <Link href={`/${entity.slug}/${row.id}`} className="font-medium hover:text-primary line-clamp-2">
                       {recordTitle(entity, row)}
                     </Link>
-                    <span className="text-xs text-muted-foreground">Atualizado {formatRelative(row.updated_at)}</span>
+                    {deadlineOf(row)?.label && <span className={cn("ml-2 text-xs font-semibold", TONE_TEXT[deadlineOf(row)!.tone])}>● {deadlineOf(row)!.label}</span>}
+                    <span className="block text-xs text-muted-foreground">Atualizado {formatRelative(row.updated_at)}</span>
                   </td>
                   {columns.map((c) => (
                     <td key={c.name} className="max-w-56 px-3 py-2.5 align-middle">
@@ -104,7 +117,7 @@ export function EntityTable({ route, result, userId, role, hasQuery }: {
         {result.rows.map((row) => {
           const editable = canEditRow(role, row.created_by, userId);
           return (
-            <li key={row.id} className="rounded-lg border border-border bg-surface p-3">
+            <li key={row.id} className={cn("rounded-lg border border-border bg-surface p-3", deadlineOf(row) && "border-l-4", deadlineOf(row) && TONE_BORDER[deadlineOf(row)!.tone])}>
               <div className="flex items-start justify-between gap-2">
                 <Link href={`/${entity.slug}/${row.id}`} className="min-w-0 font-medium leading-snug hover:text-primary">
                   {recordTitle(entity, row)}
