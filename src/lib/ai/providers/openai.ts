@@ -1,12 +1,13 @@
 import "server-only";
 import { AiError, type ChatProvider, type ChatRequest, type ChatResult } from "./types";
 
-const BASE = "https://api.openai.com/v1";
+export const OPENAI_BASE = "https://api.openai.com/v1";
+export const GOOGLE_OPENAI_BASE = "https://generativelanguage.googleapis.com/v1beta/openai";
 
-async function openaiFetch(path: string, apiKey: string, body: unknown, signal?: AbortSignal) {
+async function openaiFetch(path: string, apiKey: string, body: unknown, signal?: AbortSignal, base = OPENAI_BASE) {
   let res: Response;
   try {
-    res = await fetch(`${BASE}${path}`, {
+    res = await fetch(`${base}${path}`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
       body: JSON.stringify(body),
@@ -23,9 +24,11 @@ async function openaiFetch(path: string, apiKey: string, body: unknown, signal?:
   return res.json();
 }
 
-export function createOpenAiProvider(apiKey: string, model: string): ChatProvider {
+/** Chat compatível com OpenAI (OpenAI e Google Gemini via endpoint compatível). */
+export function createOpenAiProvider(apiKey: string, model: string, opts: { base?: string; name?: string } = {}): ChatProvider {
+  const isGoogle = opts.base === GOOGLE_OPENAI_BASE;
   return {
-    name: "openai",
+    name: opts.name ?? "openai",
     model,
     async chat(req: ChatRequest): Promise<ChatResult> {
       const json = await openaiFetch(
@@ -33,7 +36,7 @@ export function createOpenAiProvider(apiKey: string, model: string): ChatProvide
         apiKey,
         {
           model,
-          max_completion_tokens: req.maxTokens,
+          ...(isGoogle ? { max_tokens: req.maxTokens } : { max_completion_tokens: req.maxTokens }),
           messages: [
             { role: "system", content: req.system },
             ...req.messages.map((m) =>
@@ -44,6 +47,7 @@ export function createOpenAiProvider(apiKey: string, model: string): ChatProvide
           ],
         },
         req.signal,
+        opts.base,
       );
       const choice = json.choices?.[0];
       return {
@@ -51,15 +55,15 @@ export function createOpenAiProvider(apiKey: string, model: string): ChatProvide
         tokensIn: Number(json.usage?.prompt_tokens ?? 0),
         tokensOut: Number(json.usage?.completion_tokens ?? 0),
         model: String(json.model ?? model),
-        provider: "openai",
+        provider: opts.name ?? "openai",
       };
     },
   };
 }
 
 /** Embeddings (OpenAI). Retorna vetores na mesma ordem dos textos. */
-export async function openAiEmbeddings(apiKey: string, model: string, texts: string[], signal?: AbortSignal): Promise<{ vectors: number[][]; tokens: number }> {
-  const json = await openaiFetch("/embeddings", apiKey, { model, input: texts, dimensions: 1536 }, signal);
+export async function openAiEmbeddings(apiKey: string, model: string, texts: string[], signal?: AbortSignal, base = OPENAI_BASE): Promise<{ vectors: number[][]; tokens: number }> {
+  const json = await openaiFetch("/embeddings", apiKey, { model, input: texts, dimensions: 1536 }, signal, base);
   const data = (json.data ?? []) as { index: number; embedding: number[] }[];
   const vectors = data.sort((a, b) => a.index - b.index).map((d) => d.embedding);
   if (vectors.length !== texts.length) throw new AiError("Resposta de embeddings incompleta.", "provider", true);

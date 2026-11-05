@@ -1,7 +1,7 @@
 import "server-only";
 import { getAiConfig } from "./config";
 import { createAnthropicProvider } from "./providers/anthropic";
-import { createOpenAiProvider, openAiEmbeddings } from "./providers/openai";
+import { createOpenAiProvider, GOOGLE_OPENAI_BASE, openAiEmbeddings } from "./providers/openai";
 import { AiError, type ChatProvider } from "./providers/types";
 
 export { AiError } from "./providers/types";
@@ -17,6 +17,7 @@ export function getChatProvider(): ChatProvider {
     );
   }
   if (c.chatProvider === "anthropic") return createAnthropicProvider(c.anthropicKey, c.chatModel, c.effort);
+  if (c.chatProvider === "google") return createOpenAiProvider(process.env.GEMINI_API_KEY ?? "", c.chatModel, { base: GOOGLE_OPENAI_BASE, name: "google" });
   return createOpenAiProvider(c.openaiKey, c.chatModel);
 }
 
@@ -31,7 +32,9 @@ export async function embedTexts(texts: string[], signal?: AbortSignal): Promise
   let tokens = 0;
   for (let i = 0; i < texts.length; i += 64) {
     const batch = texts.slice(i, i + 64).map((t) => t.slice(0, 8000));
-    const res = await openAiEmbeddings(c.openaiKey, c.embeddingModel, batch, signal);
+    const res = c.embeddingProvider === "google"
+      ? await openAiEmbeddings(c.embeddingKey, c.embeddingModel, batch, signal, GOOGLE_OPENAI_BASE)
+      : await openAiEmbeddings(c.openaiKey, c.embeddingModel, batch, signal);
     vectors.push(...res.vectors);
     tokens += res.tokens;
   }
