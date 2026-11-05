@@ -24,9 +24,13 @@ A pedido do usuário foram **removidos**: metas acadêmicas, desempenho acadêmi
 
 ## Verificação
 
-- `npm run typecheck` ✔ · `npm run lint` ✔ (1 aviso informativo do React Compiler sobre `watch` do React Hook Form) · `npm test` ✔ 46 testes · `npm run test:db` ✔ 63 asserções de RLS/integridade · `npm run build` ✔ (50 rotas).
+- `npm run typecheck` ✔ · `npm run lint` ✔ (1 aviso informativo do React Compiler sobre `watch` do React Hook Form) · `npm test` ✔ 50 testes · `npm run test:db` ✔ 87 asserções de RLS/integridade/cobrança · `npm run build` ✔ (50 rotas).
 - Os testes de banco rodam em PostgreSQL 16 local com stub do Supabase; a migration de pgvector (`…005`) não foi executada localmente (extensão indisponível no ambiente de desenvolvimento) — validar no Supabase.
 - Ainda **não testado contra um projeto Supabase real** nem com chaves de IA reais (não disponíveis no ambiente de desenvolvimento).
+
+## Assinatura (05/11/2026)
+
+Teste grátis de 7 dias, popup de bloqueio ao vencer, R$ 39,90 por 30 dias via Checkout PagBank (Pix, cartão, boleto), webhook verificado, página `/assinatura` e painel `/admin` (status de cada aluno, receita, bloquear/desbloquear, conceder dias, pagamento manual). Migration `…007`. Testes: 24 asserções de banco para cobrança e 4 testes unitários do webhook.
 
 ## Implantação
 

@@ -6,6 +6,7 @@ import { AiError, getChatProvider, type ChatTurn } from "@/lib/ai";
 import { getAiConfig } from "@/lib/ai/config";
 import { assertWithinLimits, logUsage } from "@/lib/ai/usage";
 import { parseContextRef, retrieveContext, SYSTEM_PROMPT } from "@/modules/assistant/context";
+import { hasActiveAccess } from "@/lib/billing/access";
 
 export const maxDuration = 120;
 
@@ -23,6 +24,7 @@ function jsonError(message: string, status: number, kind?: string) {
 export async function POST(request: NextRequest) {
   const ctx = await getSessionContext();
   if (!ctx) return jsonError("Sessão expirada. Entre novamente.", 401);
+  if (!(await hasActiveAccess())) return jsonError("Sua assinatura não está ativa. Acesse /assinatura para liberar o acesso.", 402, "payment_required");
 
   let body: z.infer<typeof bodySchema>;
   try {

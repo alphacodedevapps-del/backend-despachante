@@ -71,6 +71,16 @@ Regras de integridade relevantes:
 | `flashcard_reviews` | histórico de revisões |
 | `quizzes`, `quiz_questions`, `quiz_attempts` | simulados, questões sorteadas e tentativas corrigidas no servidor |
 
+## Assinatura e administração
+
+| Tabela | Finalidade |
+|---|---|
+| `subscriptions` | uma por usuário: fim do teste (7 dias), fim do período pago, último pagamento, bloqueio manual, observação do admin |
+| `payments` | pagamentos (PagBank ou manual): status, valor, checkout/pedido/cobrança, método, data, aplicação do período |
+| `platform_admin_emails` | e-mails com acesso ao painel do administrador (sem senha; inacessível pela API) |
+
+Funções: `my_access()` (situação do usuário logado), `has_active_access()` (usada pelas políticas de escrita), `apply_payment()` (somente servidor, idempotente, +30 dias), `admin_list_users()` (somente admin). Sem acesso ativo, `can_write_workspace`/`can_edit_row` retornam falso: o banco recusa criar ou alterar conteúdo.
+
 ## IA
 
 | Tabela | Finalidade |

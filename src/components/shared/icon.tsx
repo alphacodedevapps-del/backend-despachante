@@ -4,7 +4,7 @@ import {
   Files, Flag, FlaskConical, Folder, FolderKanban, GraduationCap, HandHeart, HeartPulse, Hospital, IdCard, KanbanSquare,
   Layers, LayoutDashboard, Library, ListChecks, Microscope, Network, NotebookPen, NotebookTabs, Pill, Presentation,
   Quote, Rocket, ScrollText, Search, Settings, ShieldCheck, Sparkles, Stethoscope, Target, Ticket, Timer, TrendingUp,
-  User, UserRound, Users, Brain, Mail, FileUser, ChartLine, type LucideIcon,
+  User, UserRound, Users, Brain, Mail, FileUser, ChartLine, Ban, Wallet, type LucideIcon,
 } from "lucide-react";
 
 const ICONS: Record<string, LucideIcon> = {
@@ -13,7 +13,7 @@ const ICONS: Record<string, LucideIcon> = {
   Files, Flag, FlaskConical, Folder, FolderKanban, GraduationCap, HandHeart, HeartPulse, Hospital, IdCard, KanbanSquare,
   Layers, LayoutDashboard, Library, ListChecks, Microscope, Network, NotebookPen, NotebookTabs, Pill, Presentation,
   Quote, Rocket, ScrollText, Search, Settings, ShieldCheck, Sparkles, Stethoscope, Target, Ticket, Timer, TrendingUp,
-  User, UserRound, Users, Brain, Mail, FileUser, ChartLine,
+  User, UserRound, Users, Brain, Mail, FileUser, ChartLine, Ban, Wallet,
 };
 
 export function Icon({ name, className }: { name: string; className?: string }) {

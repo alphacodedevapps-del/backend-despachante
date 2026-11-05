@@ -39,6 +39,12 @@ Zod no cliente e no servidor; remoção de caracteres de controle; limites de ta
 ## IA
 Chamadas exclusivamente no servidor; limites diários/mensais por usuário; registro de uso e custo; documentos tratados como dados (tags de fonte escapadas, instrução explícita no prompt de sistema); IA pode ser desativada por workspace; sugestões da IA (relacionamentos, flashcards, questões, fichamentos) só são salvas após aprovação.
 
+## Pagamentos
+- Nenhum dado de cartão passa pelo sistema: o pagamento ocorre no Checkout hospedado do PagBank.
+- Webhook com dupla verificação: assinatura `x-authenticity-token` (SHA-256 de `token-corpo`, comparação em tempo constante) **e** consulta do pedido na API do PagBank; o valor pago é conferido com o esperado; aplicação idempotente.
+- Assinaturas e pagamentos só são gravados pelo servidor (service role); alunos apenas leem os próprios registros. Painel `/admin` e função `admin_list_users` restritos a e-mails em `platform_admin_emails`; ações administrativas auditadas.
+- Bloqueio aplicado em três camadas: popup no layout (o conteúdo não é renderizado), checagem nas rotas de IA e políticas do banco (sem acesso ativo não há escrita). A exportação de dados (LGPD) continua disponível mesmo sem assinatura.
+
 ## LGPD
 - **Finalidade e minimização:** cadastro com nome, e-mail e senha; demais campos opcionais. Casos clínicos com identificação anonimizada (faixa etária, sexo apenas se necessário), aviso de confidencialidade e bloqueio de caso real sem confirmação de anonimização.
 - **Transparência:** política em `/privacidade`; consentimento no cadastro.

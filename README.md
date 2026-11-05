@@ -42,6 +42,7 @@ cp .env.example .env.local   # preencha os valores (veja a seção 4)
 | `20260101000003_documents_studies_extras.sql` | documentos, coleções, etapas de projeto, revisões de flashcards, simulados, perfil da liga, notificações automáticas, Storage |
 | `20260101000004_ai.sql` | conversas, mensagens, uso de IA, trechos de documentos, fila de processamento, busca textual em trechos |
 | `20260101000005_pgvector.sql` | coluna `embedding vector(1536)`, índice HNSW e busca híbrida `match_document_chunks` |
+| `20260101000007_billing.sql` | assinatura (7 dias de teste, períodos de 30 dias), pagamentos PagBank, administradores da plataforma e bloqueio de escrita sem acesso ativo |
 | `20260101000006_scope_simplification.sql` | remove os módulos descontinuados (metas, glossário, condutas, membros/certificados da liga, desenvolvimento profissional) e ajusta notificações |
 
 Se alterar o registro de entidades, regenere a migration de conteúdo: `node scripts/generate-entity-sql.ts` (em produção, crie **nova** migration com o `ALTER TABLE` correspondente em vez de editar uma já aplicada).
@@ -68,6 +69,14 @@ Use as chaves exibidas pelo `supabase start` no `.env.local`.
 | `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` | servidor | não | chaves dos provedores |
 | `AI_DAILY_REQUEST_LIMIT`, `AI_MONTHLY_TOKEN_LIMIT`, `AI_MAX_OUTPUT_TOKENS` | servidor | não | limites por usuário |
 | `AI_COST_*_PER_MTOK` | servidor | não | custos para estimativa no registro de uso |
+| `PAGBANK_TOKEN` | **somente servidor** | para cobrar | token de integração do PagBank |
+| `PAGBANK_ENV` | servidor | não | `sandbox` (padrão) ou `production` |
+| `SUBSCRIPTION_PRICE_CENTS` / `SUBSCRIPTION_PERIOD_DAYS` | servidor | não | padrão 3990 (R$ 39,90) e 30 dias |
+
+### Assinatura e administração
+- Todo novo usuário tem **7 dias de teste grátis**. Depois disso, um popup bloqueia o conteúdo até o pagamento; cada pagamento confirmado libera **30 dias** (pagar antes do vencimento acumula).
+- Pagamento via **Checkout PagBank** (Pix, cartão de crédito/débito, boleto). O webhook `/api/pagbank/webhook` valida a assinatura `x-authenticity-token` e **confirma o pedido na API do PagBank** antes de liberar o acesso. A URL do webhook é enviada automaticamente em cada checkout — não é preciso configurá-la no painel do PagBank.
+- **Painel do administrador** em `/admin` (menu do usuário): alunos em teste, ativos, vencidos e bloqueados, receita, pagamentos, bloquear/desbloquear, conceder dias, registrar pagamento manual e observações. Administradores são definidos por e-mail na tabela `platform_admin_emails` (inicial: `alphacode.devapps@gmail.com`) — basta criar a conta com esse e-mail.
 
 Sem as variáveis do Supabase, a aplicação redireciona para `/configuracao` com instruções. Sem chaves de IA, a interface do assistente continua disponível e informa que a integração precisa ser configurada — **nenhuma resposta é simulada**.
 
@@ -83,7 +92,7 @@ Crie uma conta em `/cadastro`. Um **workspace pessoal privado** é criado automa
 ```bash
 npm run typecheck  # TypeScript strict
 npm run lint       # ESLint (config do Next)
-npm test           # Vitest: regras de domínio, validação, permissões, IA (46 testes)
+npm test           # Vitest: regras de domínio, validação, permissões, IA (50 testes)
 npm run test:db    # migrations + RLS em PostgreSQL local com stub do Supabase (63 asserções)
 npm run build      # build de produção
 ```

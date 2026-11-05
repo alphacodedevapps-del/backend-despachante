@@ -8,6 +8,7 @@ import { fail, friendlyDbError, type ActionResult } from "@/lib/errors";
 import { AiError, getChatProvider } from "@/lib/ai";
 import { getAiConfig } from "@/lib/ai/config";
 import { assertWithinLimits, logUsage } from "@/lib/ai/usage";
+import { hasActiveAccess } from "@/lib/billing/access";
 import { ENTITY_MAP } from "@/modules/entities/definitions";
 import type { SearchHit } from "@/modules/relations/actions";
 import { parseContextRef, recordToText, SYSTEM_PROMPT } from "./context";
@@ -40,6 +41,7 @@ export async function updateConversationAction(id: string, patch: { title?: stri
 async function runGeneration(prompt: string, maxTokens = 3000): Promise<string> {
   const ctx = await getSessionContext();
   if (!ctx) throw new AiError("Sessão expirada.", "auth");
+  if (!(await hasActiveAccess())) throw new AiError("Sua assinatura não está ativa.", "limit");
   const supabase = await createClient();
   const provider = getChatProvider();
   await assertWithinLimits(supabase, ctx.user.id);

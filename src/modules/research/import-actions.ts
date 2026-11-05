@@ -6,6 +6,7 @@ import { canWrite } from "@/lib/permissions";
 import { fail, type ActionResult } from "@/lib/errors";
 import { AiError, getChatProvider, type ChatTurn } from "@/lib/ai";
 import { assertWithinLimits, logUsage } from "@/lib/ai/usage";
+import { hasActiveAccess } from "@/lib/billing/access";
 import type { ImageInput } from "@/lib/ai/providers/types";
 import { buildExtractionPrompt, detectImage, EXTRACTION_SYSTEM, extractedSchema, parseExtractionJson, type ExtractedArticle } from "./article-extract";
 
@@ -23,6 +24,7 @@ export async function extractArticleFromImagesAction(form: FormData): Promise<Ac
   const ctx = await getSessionContext();
   if (!ctx) return fail("Sessão expirada.");
   if (!canWrite(ctx.workspace.role)) return fail("Seu papel neste workspace é somente leitura.");
+  if (!(await hasActiveAccess())) return fail("Sua assinatura não está ativa.");
 
   const files = form.getAll("images").filter((f): f is File => f instanceof File && f.size > 0);
   if (files.length === 0) return fail("Selecione ao menos uma imagem do artigo.");

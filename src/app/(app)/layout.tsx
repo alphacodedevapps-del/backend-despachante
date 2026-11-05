@@ -4,6 +4,9 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { ThemeSync } from "@/components/layout/theme";
+import Link from "next/link";
+import { daysUntil, getAccess } from "@/lib/billing/access";
+import { Paywall } from "@/modules/billing/components";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const ctx = await requireSession();
@@ -11,6 +14,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   // Gera notificações devidas (idempotente) e conta as não lidas.
   await supabase.rpc("generate_my_notifications");
   const { count } = await supabase.from("notifications").select("id", { count: "exact", head: true }).is("read_at", null);
+  const access = await getAccess();
+  const trialDays = access.status === "teste" && access.trialEndsAt ? daysUntil(access.trialEndsAt) : null;
 
   return (
     <div className="flex min-h-dvh">
@@ -25,10 +30,18 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           unread={count ?? 0}
           workspaces={ctx.workspaces.map((w) => ({ id: w.id, name: w.name, workspace_type: w.workspace_type, is_personal: w.is_personal, role: w.role }))}
           currentWorkspaceId={ctx.workspace.id}
+          isAdmin={access.isAdmin}
         />
+        {trialDays !== null && (
+          <div className="no-print border-b border-border bg-info-soft px-4 py-2 text-center text-sm">
+            Teste grátis: {trialDays === 0 ? "termina hoje" : `${trialDays} dia(s) restante(s)`}.{" "}
+            <Link href="/assinatura" className="font-medium text-primary underline">Assinar agora</Link>
+          </div>
+        )}
         <main id="conteudo" className="mx-auto w-full max-w-7xl flex-1 px-4 pb-24 pt-5 sm:px-6 lg:pb-10 lg:pt-7">
-          {children}
+          {access.allowed ? children : <div aria-hidden className="h-[60vh]" />}
         </main>
+        {!access.allowed && <Paywall status={access.status} priceCents={access.priceCents} />}
       </div>
       <MobileNav />
       <ThemeSync serverTheme={ctx.preferences?.theme ?? null} />

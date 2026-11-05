@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { Dialog as D } from "radix-ui";
-import { Bell, LogOut, Menu, Settings, ShieldCheck, User } from "lucide-react";
+import { Bell, CreditCard, LogOut, Menu, Settings, ShieldCheck, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SheetContent } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -14,12 +14,13 @@ import { Brand, SidebarNav } from "./sidebar";
 import { WorkspaceSwitcher, type WsItem } from "./workspace-switcher";
 import { GlobalSearch } from "./global-search";
 
-export function Header({ userName, email, unread, workspaces, currentWorkspaceId }: {
+export function Header({ userName, email, unread, workspaces, currentWorkspaceId, isAdmin }: {
   userName: string;
   email: string;
   unread: number;
   workspaces: WsItem[];
   currentWorkspaceId: string;
+  isAdmin?: boolean;
 }) {
   const [menuOpen, setMenuOpen] = React.useState(false);
   const wsNames = Object.fromEntries(workspaces.map((w) => [w.id, w.name]));
@@ -73,6 +74,14 @@ export function Header({ userName, email, unread, workspaces, currentWorkspaceId
             <ThemeSwitcher className="w-full justify-between" />
           </div>
           <DropdownMenuSeparator />
+          {isAdmin && (
+            <DropdownMenuItem asChild>
+              <Link href="/admin"><ShieldCheck /> Painel do administrador</Link>
+            </DropdownMenuItem>
+          )}
+          <DropdownMenuItem asChild>
+            <Link href="/assinatura"><CreditCard /> Assinatura</Link>
+          </DropdownMenuItem>
           <DropdownMenuItem asChild>
             <Link href="/perfil"><User /> Perfil</Link>
           </DropdownMenuItem>

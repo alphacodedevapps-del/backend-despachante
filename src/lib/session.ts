@@ -51,6 +51,8 @@ export interface SessionContext {
 
 /** Contexto da sessão (memoizado por requisição). Retorna null sem login. */
 export const getSessionContext = cache(async (): Promise<SessionContext | null> => {
+  // Ler cookies primeiro garante renderização dinâmica (nunca pré-renderizar páginas privadas).
+  const cookieStore = await cookies();
   if (!getSupabaseEnv().configured) return null;
   const supabase = await createClient();
   const {
@@ -79,7 +81,6 @@ export const getSessionContext = cache(async (): Promise<SessionContext | null> 
   if (workspaces.length === 0) return null;
 
   const preferences = (prefsRes.data as Preferences | null) ?? null;
-  const cookieStore = await cookies();
   const cookieWs = cookieStore.get(WORKSPACE_COOKIE)?.value;
   const workspace =
     workspaces.find((w) => w.id === cookieWs) ??
