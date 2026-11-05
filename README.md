@@ -93,6 +93,8 @@ npm run build      # build de produção
 
 **Vercel (recomendado):** importe o repositório, configure as variáveis da seção 4 (marque `SUPABASE_SERVICE_ROLE_KEY` e chaves de IA apenas para o ambiente de servidor), e faça o deploy. Atualize *Site URL* e *Redirect URLs* no Supabase com o domínio final.
 
+**Netlify:** o `netlify.toml` já está pronto (o runtime oficial de Next.js é aplicado automaticamente). Para publicar pela CLI a partir de um build local: `netlify build` e depois `netlify deploy --prod --no-build --dir .netlify/static` — a pasta publicada deve ser `.netlify/static` (gerada pelo runtime), não `.next`.
+
 **Outro host Node:** `npm run build && npm start` (porta 3000). O processamento de documentos roda após a resposta (`after()` do Next); em ambientes serverless, `maxDuration` está configurado nas rotas de IA.
 
 **Notificações:** são geradas de forma idempotente a cada acesso ao app (`generate_my_notifications`). Para gerar sem acesso, agende via `pg_cron` uma rotina equivalente por usuário (opcional).
