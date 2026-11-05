@@ -3,6 +3,7 @@ import { cache } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getSupabaseEnv } from "@/lib/supabase/env";
 import type { WorkspaceRole, WorkspaceType } from "@/lib/permissions";
 
 export const WORKSPACE_COOKIE = "ca_ws";
@@ -50,6 +51,7 @@ export interface SessionContext {
 
 /** Contexto da sessão (memoizado por requisição). Retorna null sem login. */
 export const getSessionContext = cache(async (): Promise<SessionContext | null> => {
+  if (!getSupabaseEnv().configured) return null;
   const supabase = await createClient();
   const {
     data: { user },

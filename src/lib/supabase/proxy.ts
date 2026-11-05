@@ -14,7 +14,7 @@ export async function updateSession(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (!url || !anonKey) {
-    if (pathname.startsWith("/configuracao") || pathname.startsWith("/api")) return NextResponse.next();
+    if (pathname.startsWith("/configuracao") || pathname.startsWith("/privacidade") || pathname.startsWith("/api")) return NextResponse.next();
     return NextResponse.redirect(new URL("/configuracao", request.url));
   }
 
