@@ -1,8 +1,6 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { chunkPages } from "@/lib/ai/chunking";
-import { embedTexts, embeddingsAvailable, toPgVector } from "@/lib/ai";
-import { logUsage } from "@/lib/ai/usage";
+import { chunkPages } from "@/lib/text/chunking";
 import { ALLOWED_TYPES, matchesSignature } from "./constants";
 import { extractDocumentText } from "./extract";
 
@@ -73,23 +71,8 @@ export async function processDocument(supabase: SupabaseClient, documentId: stri
       return;
     }
 
-    let vectors: number[][] | null = null;
-    let embeddingModel: string | null = null;
-    if (embeddingsAvailable()) {
-      const t0 = Date.now();
-      try {
-        const res = await embedTexts(chunks.map((c) => c.content));
-        vectors = res.vectors;
-        embeddingModel = res.model;
-        await logUsage(supabase, { userId, workspaceId: doc.workspace_id, provider: "openai", model: res.model, operation: "embedding", status: "ok", tokensIn: res.tokens, latencyMs: Date.now() - t0 });
-      } catch (e) {
-        await logUsage(supabase, { userId, workspaceId: doc.workspace_id, provider: "openai", model: "embeddings", operation: "embedding", status: "erro", error: (e as Error).message });
-        throw new Error(`Falha ao gerar embeddings: ${(e as Error).message}`);
-      }
-    }
-
     for (let i = 0; i < chunks.length; i += 100) {
-      const rows = chunks.slice(i, i + 100).map((c, j) => ({
+      const rows = chunks.slice(i, i + 100).map((c) => ({
         document_id: documentId,
         workspace_id: doc.workspace_id,
         created_by: userId,
@@ -97,14 +80,12 @@ export async function processDocument(supabase: SupabaseClient, documentId: stri
         page_number: c.page,
         content: c.content,
         token_estimate: c.tokenEstimate,
-        embedding_model: embeddingModel,
-        ...(vectors ? { embedding: toPgVector(vectors[i + j]) } : {}),
       }));
       const { error } = await supabase.from("document_chunks").insert(rows);
       if (error) throw new Error(`Falha ao gravar trechos: ${error.message}`);
     }
 
-    await finish("concluido", { chunk_count: chunks.length, page_count: extracted?.pageCount ?? null, embedding_model: embeddingModel ?? "somente busca textual" });
+    await finish("concluido", { chunk_count: chunks.length, page_count: extracted?.pageCount ?? null });
   } catch (e) {
     await finish("falha", {}, (e as Error).message.slice(0, 500));
   }

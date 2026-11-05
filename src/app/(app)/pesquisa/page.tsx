@@ -51,7 +51,7 @@ export default async function ResearchHub() {
           {((projects.data ?? []) as { id: string; name: string; status: string }[]).map((p) => <ListRow key={p.id} href={`/projetos/${p.id}`} title={p.name} right={<Badge tone={toneFor(p.status)}>{optionLabel(statusField, p.status)}</Badge>} />)}
         </ListCard>
       </div>
-      <p className="text-sm text-muted-foreground">Dica: pesquise artigos por título, autor, DOI ou palavra-chave em <Link href="/artigos" className="text-primary hover:underline">Artigos científicos</Link>. Para perguntar sobre seus artigos, use o <Link href="/assistente" className="text-primary hover:underline">Assistente acadêmico</Link>.</p>
+      <p className="text-sm text-muted-foreground">Dica: pesquise artigos por título, autor, DOI ou palavra-chave em <Link href="/artigos" className="text-primary hover:underline">Artigos científicos</Link>.</p>
     </div>
   );
 }

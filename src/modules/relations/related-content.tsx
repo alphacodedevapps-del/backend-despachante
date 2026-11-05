@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Link2, Loader2, Plus, Search, Sparkles, X } from "lucide-react";
+import { Link2, Loader2, Plus, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
@@ -15,13 +15,11 @@ import { entityHref, entityTypeIcon, entityTypeLabel, SEARCHABLE_TYPES } from "@
 import { addLinkAction, removeLinkAction, searchLinkTargetsAction, type SearchHit } from "./actions";
 import type { LinkedItem } from "./queries";
 
-export function RelatedContent({ type, id, items, canEdit, suggest, aiAvailable }: {
+export function RelatedContent({ type, id, items, canEdit }: {
   type: string;
   id: string;
   items: LinkedItem[];
   canEdit: boolean;
-  suggest?: (type: string, id: string) => Promise<{ ok: true; data: SearchHit[] } | { ok: false; error: string }>;
-  aiAvailable?: boolean;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -49,7 +47,6 @@ export function RelatedContent({ type, id, items, canEdit, suggest, aiAvailable 
         </div>
         {canEdit && (
           <div className="flex gap-2">
-            {suggest && <SuggestDialog type={type} id={id} suggest={suggest} aiAvailable={aiAvailable} />}
             <AddLinkDialog type={type} id={id} existing={items} />
           </div>
         )}
@@ -74,7 +71,6 @@ export function RelatedContent({ type, id, items, canEdit, suggest, aiAvailable 
                     <span className="block truncate text-sm font-medium">{it.title}</span>
                     {it.subtitle && <span className="block truncate text-xs text-muted-foreground">{it.subtitle}</span>}
                   </Link>
-                  {it.relation === "sugerido_ia" && <Badge tone="info">IA (aprovado)</Badge>}
                   {it.relation === "anexo" && <Badge>Anexo</Badge>}
                   {canEdit && (
                     <Button
@@ -186,76 +182,3 @@ function AddLinkDialog({ type, id, existing }: { type: string; id: string; exist
   );
 }
 
-function SuggestDialog({ type, id, suggest, aiAvailable }: {
-  type: string;
-  id: string;
-  suggest: (type: string, id: string) => Promise<{ ok: true; data: SearchHit[] } | { ok: false; error: string }>;
-  aiAvailable?: boolean;
-}) {
-  const router = useRouter();
-  const [open, setOpen] = React.useState(false);
-  const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
-  const [hits, setHits] = React.useState<SearchHit[] | null>(null);
-  const [done, setDone] = React.useState<Set<string>>(new Set());
-
-  const run = async () => {
-    setLoading(true);
-    setError(null);
-    const res = await suggest(type, id);
-    setLoading(false);
-    if (!res.ok) setError(res.error);
-    else setHits(res.data);
-  };
-
-  return (
-    <Dialog
-      open={open}
-      onOpenChange={(o) => {
-        setOpen(o);
-        if (o && hits === null && aiAvailable) void run();
-      }}
-    >
-      <DialogTrigger asChild>
-        <Button variant="ghost" size="sm">
-          <Sparkles /> Sugerir com IA
-        </Button>
-      </DialogTrigger>
-      <DialogContent title="Sugestões de relacionamento" description="A IA sugere; você decide. Nada é relacionado sem sua aprovação." wide>
-        {!aiAvailable && <p className="text-sm text-muted-foreground">A integração de IA não está configurada neste ambiente. Configure as variáveis de IA no servidor (veja AI_INTEGRATION.md).</p>}
-        {loading && <p className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="size-4 animate-spin" /> Analisando conteúdos do workspace…</p>}
-        {error && <p className="text-sm text-danger">{error}</p>}
-        {hits && hits.length === 0 && <p className="text-sm text-muted-foreground">Nenhuma sugestão encontrada.</p>}
-        <ul className="divide-y divide-border">
-          {(hits ?? []).map((h) => {
-            const key = `${h.type}:${h.id}`;
-            return (
-              <li key={key} className="flex items-start justify-between gap-3 py-2">
-                <div className="min-w-0">
-                  <p className="text-sm font-medium">{h.title}</p>
-                  <p className="text-xs text-muted-foreground">{entityTypeLabel(h.type)}</p>
-                  {h.snippet && <p className="mt-1 text-xs text-muted-foreground">{h.snippet}</p>}
-                </div>
-                <Button
-                  size="sm"
-                  disabled={done.has(key)}
-                  onClick={async () => {
-                    const res = await addLinkAction(type, id, h.type, h.id, "sugerido_ia");
-                    if (!res.ok) toast.error(res.error);
-                    else {
-                      setDone(new Set(done).add(key));
-                      toast.success("Relação aprovada.");
-                      router.refresh();
-                    }
-                  }}
-                >
-                  {done.has(key) ? "Aprovado" : "Aprovar"}
-                </Button>
-              </li>
-            );
-          })}
-        </ul>
-      </DialogContent>
-    </Dialog>
-  );
-}

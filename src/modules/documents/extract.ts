@@ -1,6 +1,6 @@
 import "server-only";
 import { readZipEntries } from "@/lib/utils/zip";
-import type { PageText } from "@/lib/ai/chunking";
+import type { PageText } from "@/lib/text/chunking";
 
 const XML_ENTITIES: Record<string, string> = { "&amp;": "&", "&lt;": "<", "&gt;": ">", "&quot;": '"', "&apos;": "'" };
 

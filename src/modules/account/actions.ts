@@ -76,7 +76,6 @@ const prefsSchema = z.object({
     max_interval_days: z.number().int().min(7).max(3650),
     first_intervals: z.tuple([z.number().int().min(1).max(30), z.number().int().min(1).max(90)]),
   }),
-  ai_prefs: z.object({ answer_style: z.enum(["didatico", "objetivo", "detalhado"]), max_sources: z.number().int().min(3).max(12) }),
 });
 
 export async function updatePreferencesAction(input: z.input<typeof prefsSchema>): Promise<ActionResult> {

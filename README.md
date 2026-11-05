@@ -1,6 +1,6 @@
 # Central Acadêmica — Fisioterapia
 
-Plataforma web para organizar a trajetória acadêmica, científica e clínica de estudantes de Fisioterapia: disciplinas, biblioteca digital, artigos e fichamentos (com **importação de artigo por foto/imagem**), patologias, exercícios, testes especiais, casos clínicos anonimizados, liga acadêmica (traumatologia, ortopedia e projetos), agenda, simulados com revisão espaçada e um **Assistente acadêmico com IA (RAG)** que consulta somente os materiais autorizados do usuário.
+Plataforma web para organizar a trajetória acadêmica, científica e clínica de estudantes de Fisioterapia: disciplinas, biblioteca digital, artigos e fichamentos (com **importação de artigo por PDF ou foto**), patologias, exercícios, testes especiais, casos clínicos anonimizados, liga acadêmica (traumatologia, ortopedia e projetos), agenda, simulados com revisão espaçada (a IA foi retirada por enquanto; veja AI_INTEGRATION.md).
 
 **Stack:** Next.js 16 (App Router) · React 19 · TypeScript strict · Tailwind CSS 4 · componentes no estilo shadcn/ui (Radix) · Lucide · Supabase (PostgreSQL, Auth, Storage, RLS) · pgvector · React Hook Form + Zod · Recharts · date-fns · Vitest.
 
@@ -12,7 +12,6 @@ Plataforma web para organizar a trajetória acadêmica, científica e clínica d
 
 - Node.js 20.9+ (testado com Node 22) e npm
 - Um projeto Supabase (gratuito serve) — ou Supabase CLI + Docker para rodar localmente
-- Opcional: chave da Anthropic e/ou OpenAI para a IA
 
 ## 2. Instalação
 
@@ -62,13 +61,6 @@ Use as chaves exibidas pelo `supabase start` no `.env.local`.
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | cliente+servidor | sim | chave **anon** (pública; a RLS protege os dados) |
 | `SUPABASE_SERVICE_ROLE_KEY` | **somente servidor** | para exclusão de conta | nunca exposta ao navegador |
 | `NEXT_PUBLIC_SITE_URL` | servidor | sim | URL pública (links de convite e e-mails) |
-| `AI_CHAT_PROVIDER` | servidor | não | `anthropic` (padrão) ou `openai` |
-| `AI_CHAT_MODEL` | servidor | não | padrão `claude-opus-5-5` |
-| `AI_EFFORT` | servidor | não | esforço de raciocínio (Anthropic): `low`…`max` ou `none` |
-| `AI_EMBEDDING_PROVIDER` / `AI_EMBEDDING_MODEL` | servidor | não | `openai` / `text-embedding-3-small` (1536 dim.) |
-| `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` | servidor | não | chaves dos provedores |
-| `AI_DAILY_REQUEST_LIMIT`, `AI_MONTHLY_TOKEN_LIMIT`, `AI_MAX_OUTPUT_TOKENS` | servidor | não | limites por usuário |
-| `AI_COST_*_PER_MTOK` | servidor | não | custos para estimativa no registro de uso |
 | `PAGBANK_TOKEN` | **somente servidor** | para cobrar | token de integração do PagBank |
 | `PAGBANK_ENV` | servidor | não | `sandbox` (padrão) ou `production` |
 | `SUBSCRIPTION_PRICE_CENTS` / `SUBSCRIPTION_PERIOD_DAYS` | servidor | não | padrão 3990 (R$ 39,90) e 30 dias |

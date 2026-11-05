@@ -5,13 +5,11 @@ import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { createClient } from "@/lib/supabase/server";
-import { publicAiStatus } from "@/lib/ai/config";
 import type { SessionContext } from "@/lib/session";
 import { formatDateTime, formatNumber } from "@/lib/utils/format";
 import { generateAbntReference } from "@/lib/domain/abnt";
 import { ProjectStages, type Stage } from "@/modules/projects/stages";
 import { AbntReferenceCard, CollectionsPicker } from "@/modules/research/article-tools";
-import { AiStudyTools } from "@/modules/studies/ai-study-tools";
 import type { Row } from "./queries";
 
 export interface ExtensionProps {
@@ -31,7 +29,6 @@ async function ArticleExtension({ row, editable }: ExtensionProps) {
     supabase.from("article_collection_items").select("collection_id").eq("article_id", row.id),
     supabase.from("citations").select("id").eq("article_id", row.id).limit(1).maybeSingle(),
   ]);
-  const ai = publicAiStatus();
   const input = {
     reference_type: "artigo",
     authors: str(row.authors),
@@ -49,7 +46,6 @@ async function ArticleExtension({ row, editable }: ExtensionProps) {
     <>
       <AbntReferenceCard input={input} articleId={row.id} existingCitationId={(citation?.id as string | undefined) ?? null} editable={editable} />
       <CollectionsPicker articleId={row.id} collections={(collections ?? []) as { id: string; name: string }[]} memberIds={((items ?? []) as { collection_id: string }[]).map((i) => i.collection_id)} editable={editable} />
-      <AiStudyTools type="articles" id={row.id} kinds={["fichamento", "resumo", "flashcards", "questoes"]} aiConfigured={ai.chatConfigured} articleId={row.id} defaultTopic={str(row.title)} editable={editable} />
     </>
   );
 }
@@ -86,27 +82,6 @@ async function ProjectExtension({ row, editable }: ExtensionProps) {
   return <ProjectStages projectId={row.id} stages={(data ?? []) as Stage[]} editable={editable} />;
 }
 
-function studyTools(type: string, kinds: ("flashcards" | "questoes" | "resumo" | "roteiro")[], subjectField?: string) {
-  const Ext = function StudyExt({ row, editable }: ExtensionProps) {
-    const ai = publicAiStatus();
-    const e = { subjects: "name", study_notes: "title", pathologies: "name", clinical_tests: "name", exercises: "name", anatomical_structures: "name", protocols: "name", clinical_cases: "case_code" } as Record<string, string>;
-    return (
-      <AiStudyTools
-        type={type}
-        id={row.id}
-        kinds={kinds}
-        aiConfigured={ai.chatConfigured}
-        subjectId={subjectField ? str(row[subjectField]) : type === "subjects" ? row.id : null}
-        defaultTopic={str(row[e[type] ?? "title"]) ?? str(row.topic)}
-        editable={editable}
-      />
-    );
-  };
-  return Ext;
-}
-
-const SubjectTools = studyTools("subjects", ["flashcards", "questoes", "roteiro"]);
-
 async function SubjectExtension(props: ExtensionProps) {
   const { row } = props;
   const supabase = await createClient();
@@ -140,7 +115,6 @@ async function SubjectExtension(props: ExtensionProps) {
           </div>
         </CardContent>
       </Card>
-      <SubjectTools {...props} />
     </>
   );
 }
@@ -206,10 +180,6 @@ export const DETAIL_EXTENSIONS: Record<string, Extension> = {
   article_collections: CollectionExtension,
   projects: ProjectExtension,
   subjects: SubjectExtension,
-  study_notes: studyTools("study_notes", ["flashcards", "questoes", "resumo", "roteiro"], "subject_id"),
-  pathologies: studyTools("pathologies", ["flashcards", "questoes", "resumo"]),
-  clinical_tests: studyTools("clinical_tests", ["flashcards", "questoes"]),
-  anatomical_structures: studyTools("anatomical_structures", ["flashcards", "questoes"]),
   flashcards: FlashcardExtension,
   questions: QuestionExtension,
   citations: CitationExtension,

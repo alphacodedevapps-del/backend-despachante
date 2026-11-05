@@ -3,7 +3,7 @@ import { generateAbntReference, formatAuthors, formatAccessDate } from "@/lib/do
 import { reviewCard, resolveSrsSettings, DEFAULT_SRS } from "@/lib/domain/srs";
 import { gradeQuiz } from "@/lib/domain/quiz";
 import { expandOccurrences } from "@/lib/domain/recurrence";
-import { chunkPages } from "@/lib/ai/chunking";
+import { chunkPages } from "@/lib/text/chunking";
 
 describe("ABNT", () => {
   it("formata autores com sobrenome em maiúsculas", () => {

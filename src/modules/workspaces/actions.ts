@@ -44,9 +44,9 @@ export async function updateWorkspaceAction(id: string, input: { name: string; d
   return { ok: true, data: null };
 }
 
-export async function updateWorkspaceSettingsAction(id: string, input: { allow_member_invites: boolean; default_invite_role: string; invite_expiration_days: number; ai_enabled: boolean }): Promise<ActionResult> {
+export async function updateWorkspaceSettingsAction(id: string, input: { allow_member_invites: boolean; default_invite_role: string; invite_expiration_days: number }): Promise<ActionResult> {
   if (!UUID.safeParse(id).success) return fail("Workspace inválido.");
-  const parsed = z.object({ allow_member_invites: z.boolean(), default_invite_role: z.enum(["admin", "editor", "member", "viewer"]), invite_expiration_days: z.number().int().min(1).max(30), ai_enabled: z.boolean() }).safeParse(input);
+  const parsed = z.object({ allow_member_invites: z.boolean(), default_invite_role: z.enum(["admin", "editor", "member", "viewer"]), invite_expiration_days: z.number().int().min(1).max(30) }).safeParse(input);
   if (!parsed.success) return fail("Configurações inválidas.");
   const supabase = await createClient();
   const { data, error } = await supabase.from("workspace_settings").update(parsed.data).eq("workspace_id", id).select("workspace_id");

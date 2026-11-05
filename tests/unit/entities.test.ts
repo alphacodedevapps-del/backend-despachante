@@ -3,7 +3,6 @@ import { ENTITIES, ENTITY_MAP, ENTITY_VIEWS, getEntity } from "@/modules/entitie
 import { validateEntityInput, validatePartial, sanitizeText, initialFormValues } from "@/modules/entities/schema";
 import { canEditRow, canWrite, isAdmin, assignableRoles, canManageMember } from "@/lib/permissions";
 import { resolveMime, safeFileName, matchesSignature } from "@/modules/documents/constants";
-import { parseContextRef } from "@/modules/assistant/context-ref";
 
 describe("Registro de entidades", () => {
   it("todas as referências apontam para entidades existentes", () => {
@@ -105,10 +104,3 @@ describe("Arquivos", () => {
   });
 });
 
-describe("Contexto da IA", () => {
-  it("aceita apenas tipos conhecidos e UUID válido", () => {
-    expect(parseContextRef("articles:123e4567-e89b-12d3-a456-426614174000")).toEqual({ type: "articles", id: "123e4567-e89b-12d3-a456-426614174000" });
-    expect(parseContextRef("profiles:123e4567-e89b-12d3-a456-426614174000")).toBeNull();
-    expect(parseContextRef("articles:1 or 1=1")).toBeNull();
-  });
-});

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Pencil, Plus, Sparkles } from "lucide-react";
+import { Pencil, Plus } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert } from "@/components/ui/alert";
@@ -18,8 +18,6 @@ import { getLinkedItems } from "@/modules/relations/queries";
 import { RelatedContent } from "@/modules/relations/related-content";
 import { AttachmentsPanel } from "@/modules/documents/attachments";
 import { DETAIL_EXTENSIONS } from "@/modules/entities/extensions";
-import { suggestRelationsAction } from "@/modules/assistant/actions";
-import { publicAiStatus } from "@/lib/ai/config";
 
 type Params = Promise<{ entity: string; id: string }>;
 
@@ -61,7 +59,6 @@ export default async function EntityDetailPage({ params }: { params: Params }) {
   }
   const statusField = entity.statusField ? entity.fields.find((f) => f.name === entity.statusField) : undefined;
   const Extension = DETAIL_EXTENSIONS[entity.key];
-  const ai = publicAiStatus();
 
   return (
     <div>
@@ -73,9 +70,6 @@ export default async function EntityDetailPage({ params }: { params: Params }) {
         actions={
           <>
             {entity.favorites && <FavoriteButton entityKey={entity.key} id={row.id} value={Boolean(row.is_favorite)} disabled={!editable} />}
-            <Link href={`/assistente?contexto=${entity.key}:${row.id}`} className={buttonVariants({ variant: "outline" })}>
-              <Sparkles /> <span className="sm:hidden">IA</span><span className="hidden sm:inline">Perguntar à IA</span>
-            </Link>
             {editable && (
               <Link href={`/${entity.slug}/${row.id}/editar`} className={buttonVariants()}>
                 <Pencil /> Editar
@@ -153,7 +147,7 @@ export default async function EntityDetailPage({ params }: { params: Params }) {
         </div>
 
         <aside className="space-y-6">
-          <RelatedContent type={entity.key} id={row.id} items={linked} canEdit={writable} suggest={suggestRelationsAction} aiAvailable={ai.chatConfigured} />
+          <RelatedContent type={entity.key} id={row.id} items={linked} canEdit={writable} />
           <AttachmentsPanel type={entity.key} id={row.id} canWrite={writable} />
           <Card>
             <CardContent className="space-y-1 pt-5 text-xs text-muted-foreground">

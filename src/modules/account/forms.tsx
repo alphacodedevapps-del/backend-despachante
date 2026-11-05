@@ -64,7 +64,6 @@ type Prefs = {
   notification_prefs: Record<string, boolean>;
   calendar_prefs: { week_starts_on: 0 | 1; default_view: "month" | "week" | "day" };
   srs_settings: { initial_ease: number; min_ease: number; easy_bonus: number; hard_interval_factor: number; max_interval_days: number; first_intervals: [number, number] };
-  ai_prefs: { answer_style: "didatico" | "objetivo" | "detalhado"; max_sources: number };
 };
 
 const NOTIF_LABELS: Record<string, string> = { prazos: "Prazos próximos", provas: "Provas", tarefas_atrasadas: "Tarefas atrasadas", convites: "Convites recebidos", liga: "Atividades da liga", projetos: "Atualizações em projetos", revisoes: "Lembretes de revisão", metas: "Metas" };
@@ -115,13 +114,6 @@ export function PreferencesForm({ initial }: { initial: Prefs }) {
           <div className="space-y-1.5"><Label htmlFor="srs-min">Facilidade mínima</Label><Input id="srs-min" type="number" step="0.05" min={1.1} max={2.5} value={srs.min_ease} onChange={(e) => setSrs({ min_ease: Number(e.target.value) || 1.3 })} /></div>
           <div className="space-y-1.5"><Label htmlFor="srs-easy">Bônus “Fácil”</Label><Input id="srs-easy" type="number" step="0.05" min={1} max={3} value={srs.easy_bonus} onChange={(e) => setSrs({ easy_bonus: Number(e.target.value) || 1.3 })} /></div>
           <div className="space-y-1.5"><Label htmlFor="srs-hard">Fator “Difícil”</Label><Input id="srs-hard" type="number" step="0.05" min={1} max={2} value={srs.hard_interval_factor} onChange={(e) => setSrs({ hard_interval_factor: Number(e.target.value) || 1.2 })} /></div>
-        </div>
-      </section>
-      <section className="space-y-2">
-        <h2 className="text-sm font-semibold">Assistente acadêmico (IA)</h2>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className="space-y-1.5"><Label htmlFor="ai-src">Máximo de fontes por resposta</Label><Input id="ai-src" type="number" min={3} max={12} value={v.ai_prefs.max_sources} onChange={(e) => setV({ ...v, ai_prefs: { ...v.ai_prefs, max_sources: Math.max(3, Math.min(12, Number(e.target.value) || 8)) } })} /></div>
-          <div className="space-y-1.5"><Label htmlFor="ai-style">Estilo das respostas</Label><NativeSelect id="ai-style" value={v.ai_prefs.answer_style} onChange={(e) => setV({ ...v, ai_prefs: { ...v.ai_prefs, answer_style: e.target.value as "didatico" } })}><option value="didatico">Didático</option><option value="objetivo">Objetivo</option><option value="detalhado">Detalhado</option></NativeSelect></div>
         </div>
       </section>
       <Button type="submit" disabled={busy}>{busy && <Loader2 className="animate-spin" />} Salvar preferências</Button>

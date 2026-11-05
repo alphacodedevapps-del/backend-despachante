@@ -46,3 +46,8 @@ Teste grátis de 7 dias, popup de bloqueio ao vencer, R$ 39,90 por 30 dias via C
 4. Rotina agendada (pg_cron/Edge Function) para notificações sem acesso ao app e e-mails de lembrete.
 5. Streaming das respostas da IA.
 6. Importação de metadados de artigos por DOI (Crossref), sempre com revisão manual.
+
+
+## Remoção da IA (05/11/2026)
+
+A pedido do responsável, o assistente acadêmico, a busca por significado, as sugestões de IA e o "Estudar com IA" foram retirados. A leitura de artigo por PDF e por foto (OCR no navegador) foi mantida, sem IA. Veja AI_INTEGRATION.md.

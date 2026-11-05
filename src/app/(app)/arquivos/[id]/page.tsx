@@ -1,8 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Sparkles } from "lucide-react";
-import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert } from "@/components/ui/alert";
 import { PageHeader } from "@/components/shared/page-header";
@@ -16,8 +13,6 @@ import { ProcessingBadge } from "@/modules/documents/status-badge";
 import { DocumentEditForm } from "@/modules/documents/edit-form";
 import { getLinkedItems } from "@/modules/relations/queries";
 import { RelatedContent } from "@/modules/relations/related-content";
-import { suggestRelationsAction } from "@/modules/assistant/actions";
-import { publicAiStatus } from "@/lib/ai/config";
 
 export const metadata: Metadata = { title: "Arquivo" };
 
@@ -51,7 +46,6 @@ export default async function DocumentPage({ params }: { params: Promise<{ id: s
         actions={
           <>
             <OpenFileButtons id={id} />
-            {doc.processing_status === "concluido" && <Link href={`/assistente?contexto=documents:${id}`} className={buttonVariants({ variant: "outline" })}><Sparkles /> Perguntar à IA</Link>}
             {editable && <DeleteDocumentButton id={id} title={doc.title} redirectTo="/arquivos" />}
           </>
         }
@@ -79,7 +73,7 @@ export default async function DocumentPage({ params }: { params: Promise<{ id: s
         <aside className="space-y-6">
           <Card>
             <CardHeader>
-              <div><CardTitle>Indexação para a IA</CardTitle><CardDescription>O documento só é pesquisável pela IA após a conclusão.</CardDescription></div>
+              <div><CardTitle>Indexação para pesquisa</CardTitle><CardDescription>O texto do documento fica pesquisável por palavras após a conclusão.</CardDescription></div>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
               <ProcessingBadge status={doc.processing_status} />
@@ -95,7 +89,7 @@ export default async function DocumentPage({ params }: { params: Promise<{ id: s
               )}
             </CardContent>
           </Card>
-          <RelatedContent type="documents" id={id} items={linked} canEdit={canWrite(ws?.role)} suggest={suggestRelationsAction} aiAvailable={publicAiStatus().chatConfigured} />
+          <RelatedContent type="documents" id={id} items={linked} canEdit={canWrite(ws?.role)} />
           <Card><CardContent className="space-y-1 pt-5 text-xs text-muted-foreground"><p>Arquivo: {doc.file_name}</p><p>Enviado em {formatDateTime(doc.created_at)}</p><p>Workspace: {ws?.name}</p></CardContent></Card>
         </aside>
       </div>

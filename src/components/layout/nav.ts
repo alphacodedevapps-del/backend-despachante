@@ -16,7 +16,6 @@ export const NAV: NavGroup[] = [
       { label: "Dashboard", href: "/dashboard", icon: "LayoutDashboard" },
       { label: "Minha semana", href: "/semana", icon: "CalendarCheck" },
       { label: "Notificações", href: "/notificacoes", icon: "Bell" },
-      { label: "Assistente acadêmico", href: "/assistente", icon: "Sparkles" },
     ],
   },
   {
@@ -93,5 +92,4 @@ export const MOBILE_NAV: NavItem[] = [
   { label: "Início", href: "/dashboard", icon: "LayoutDashboard" },
   { label: "Agenda", href: "/agenda", icon: "CalendarDays" },
   { label: "Buscar", href: "/busca", icon: "Search" },
-  { label: "IA", href: "/assistente", icon: "Sparkles" },
 ];

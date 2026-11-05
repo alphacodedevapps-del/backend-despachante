@@ -94,7 +94,6 @@ export function WorkspaceSettingsForm({ id, settings, editable }: { id: string; 
       router.refresh();
     }}>
       <label className="flex items-center gap-2 text-sm"><Checkbox checked={v.allow_member_invites} disabled={!editable} onChange={(e) => setV({ ...v, allow_member_invites: e.target.checked })} /> Editores e membros podem convidar pessoas</label>
-      <label className="flex items-center gap-2 text-sm"><Checkbox checked={v.ai_enabled} disabled={!editable} onChange={(e) => setV({ ...v, ai_enabled: e.target.checked })} /> Permitir o Assistente acadêmico (IA) neste workspace</label>
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-1.5"><Label htmlFor="wsd-role">Papel padrão dos convites</Label><NativeSelect id="wsd-role" disabled={!editable} value={v.default_invite_role} onChange={(e) => setV({ ...v, default_invite_role: e.target.value })}>{(["editor", "member", "viewer", "admin"] as WorkspaceRole[]).map((r) => <option key={r} value={r}>{ROLE_LABELS[r]}</option>)}</NativeSelect></div>
         <div className="space-y-1.5"><Label htmlFor="wsd-exp">Validade dos convites (dias)</Label><Input id="wsd-exp" type="number" min={1} max={30} disabled={!editable} value={v.invite_expiration_days} onChange={(e) => setV({ ...v, invite_expiration_days: Math.max(1, Math.min(30, Number(e.target.value) || 7)) })} /></div>
