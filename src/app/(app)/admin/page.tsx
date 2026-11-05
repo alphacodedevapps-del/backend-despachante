@@ -14,7 +14,7 @@ import { getAccess } from "@/lib/billing/access";
 import { getBillingConfig } from "@/lib/billing/config";
 import { formatDate, formatDateTime } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
-import { formatBRL } from "@/modules/billing/components";
+import { formatBRL } from "@/lib/billing/format";
 import { UserActions } from "@/modules/admin/user-actions";
 
 export const metadata: Metadata = { title: "Painel do administrador" };

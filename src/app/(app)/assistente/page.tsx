@@ -8,7 +8,8 @@ import { createClient } from "@/lib/supabase/server";
 import { publicAiStatus } from "@/lib/ai/config";
 import { formatRelative } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
-import { AssistantChat, TOPICS, type ChatMessage } from "@/modules/assistant/chat";
+import { AssistantChat, type ChatMessage } from "@/modules/assistant/chat";
+import { TOPICS } from "@/modules/assistant/topics";
 import { describeContextAction } from "@/modules/assistant/actions";
 
 export const metadata: Metadata = { title: "Assistente acadêmico" };

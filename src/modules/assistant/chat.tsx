@@ -11,6 +11,7 @@ import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils/cn";
 import { deleteConversationAction, updateConversationAction } from "./actions";
+import { TOPICS } from "./topics";
 import type { Citation } from "./context";
 
 export interface ChatMessage {
@@ -32,7 +33,6 @@ const SUGGESTIONS = [
   "Organize um plano de estudos para minha próxima prova.",
 ];
 
-export const TOPICS = ["Biblioteca", "Pesquisa científica", "Estudos", "Conhecimento clínico", "Planejamento", "Outro"];
 
 /** Renderização simples e segura (sem HTML) com destaque para citações [n]. */
 function RichText({ text, citations }: { text: string; citations: Citation[] }) {

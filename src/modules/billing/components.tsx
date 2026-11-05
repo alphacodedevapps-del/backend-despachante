@@ -6,11 +6,9 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { CheckCircle2, Loader2, Lock, RefreshCw, ShieldCheck } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { formatBRL } from "@/lib/billing/format";
 import { startCheckoutAction, refreshMyPaymentsAction, myAccessStatusAction } from "./actions";
 
-export function formatBRL(cents: number) {
-  return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(cents / 100);
-}
 
 export function PayButton({ priceCents, label, size = "lg" }: { priceCents: number; label?: string; size?: "lg" | "default" }) {
   const [busy, setBusy] = React.useState(false);

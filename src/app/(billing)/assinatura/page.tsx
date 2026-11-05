@@ -8,7 +8,8 @@ import { createClient } from "@/lib/supabase/server";
 import { daysUntil, getAccess } from "@/lib/billing/access";
 import { getBillingConfig } from "@/lib/billing/config";
 import { formatDate, formatDateTime } from "@/lib/utils/format";
-import { PayButton, ReturnChecker, formatBRL } from "@/modules/billing/components";
+import { PayButton, ReturnChecker } from "@/modules/billing/components";
+import { formatBRL } from "@/lib/billing/format";
 import { signOutAction } from "@/modules/shell/actions";
 
 export const metadata: Metadata = { title: "Assinatura" };
