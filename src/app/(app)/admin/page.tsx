@@ -36,6 +36,7 @@ interface AdminUser {
   total_paid_cents: number;
   payments_count: number;
   is_admin: boolean;
+  recurring_status: string | null;
 }
 
 const STATUS = {
@@ -134,7 +135,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
                         <p className="text-xs text-muted-foreground">Cadastro: {formatDate(u.signed_up_at)}</p>
                         {u.admin_note && <p className="mt-1 text-xs italic text-muted-foreground">Obs.: {u.admin_note}</p>}
                       </td>
-                      <td className="px-3 py-2"><Badge tone={st.tone}>{st.label}</Badge>{u.manually_blocked && u.blocked_reason && <p className="mt-1 text-xs text-muted-foreground">{u.blocked_reason}</p>}</td>
+                      <td className="px-3 py-2"><Badge tone={st.tone}>{st.label}</Badge>{u.recurring_status && <p className="mt-1 text-xs text-muted-foreground">Cartão recorrente: {u.recurring_status}</p>}{u.manually_blocked && u.blocked_reason && <p className="mt-1 text-xs text-muted-foreground">{u.blocked_reason}</p>}</td>
                       <td className="px-3 py-2 tabular-nums">{u.is_admin ? "—" : formatDate(until)}</td>
                       <td className="px-3 py-2 tabular-nums">{formatDate(u.last_payment_at) || "—"}</td>
                       <td className="px-3 py-2 tabular-nums">{formatBRL(Number(u.total_paid_cents))} <span className="text-xs text-muted-foreground">({u.payments_count})</span></td>

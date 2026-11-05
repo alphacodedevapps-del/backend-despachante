@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import { daysUntil, getAccess } from "@/lib/billing/access";
 import { getBillingConfig } from "@/lib/billing/config";
 import { formatDate, formatDateTime } from "@/lib/utils/format";
-import { PayButton, ReturnChecker } from "@/modules/billing/components";
+import { PaymentOptions, PayButton, ReturnChecker } from "@/modules/billing/components";
 import { formatBRL } from "@/lib/billing/format";
 import { signOutAction } from "@/modules/shell/actions";
 
@@ -29,14 +29,18 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
   const access = await getAccess();
   const cfg = getBillingConfig();
   const supabase = await createClient();
-  const { data: payments } = await supabase.from("payments").select("id, status, amount_cents, payment_method, paid_at, created_at").order("created_at", { ascending: false }).limit(20);
+  const [{ data: payments }, { data: sub }] = await Promise.all([
+    supabase.from("payments").select("id, status, amount_cents, payment_method, paid_at, created_at, kind").order("created_at", { ascending: false }).limit(20),
+    supabase.from("subscriptions").select("recurring_status").maybeSingle(),
+  ]);
+  const recurringActive = sub?.recurring_status === "ativa";
   const s = STATUS[access.status] ?? STATUS.sem_assinatura;
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold">Assinatura</h1>
-        <p className="text-sm text-muted-foreground">Plano mensal de {formatBRL(access.priceCents)} com 7 dias de teste grátis.</p>
+        <p className="text-sm text-muted-foreground">{formatBRL(access.priceCents)} por mês, com 7 dias de teste grátis. Cartão com renovação automática ou Pix avulso.</p>
       </div>
 
       {sp.retorno === "1" && <ReturnChecker />}
@@ -51,11 +55,20 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
           {access.status === "admin" && <p>Contas de administrador têm acesso completo sem cobrança.</p>}
           {!cfg.configured && access.status !== "admin" && <Alert tone="warning">O pagamento online ainda está sendo ativado. Tente novamente em breve.</Alert>}
           {access.status !== "admin" && cfg.configured && (
-            <div className="flex flex-wrap gap-2 pt-2">
-              <PayButton priceCents={access.priceCents} label={access.status === "ativo" ? `Antecipar mais 30 dias (${formatBRL(access.priceCents)})` : undefined} />
+            <div className="pt-2">
+              {recurringActive ? (
+                <p className="text-sm">Assinatura no cartão <strong>ativa</strong>: a renovação é automática a cada mês. Para cancelar, use o painel de assinaturas do PagBank ou fale com o suporte.</p>
+              ) : access.status === "ativo" ? (
+                <div className="flex flex-wrap gap-2">
+                  <PayButton priceCents={access.priceCents} kind="recorrente" label={`Ativar renovação automática no cartão (${formatBRL(access.priceCents)}/mês)`} />
+                  <PayButton priceCents={access.priceCents} kind="avulso" variant="outline" label={`Antecipar mais 30 dias via Pix (${formatBRL(access.priceCents)})`} />
+                </div>
+              ) : (
+                <PaymentOptions priceCents={access.priceCents} />
+              )}
             </div>
           )}
-          <p className="text-xs text-muted-foreground">Pagamento processado pelo PagBank (Pix, cartão de crédito, débito ou boleto). Não armazenamos dados de cartão.</p>
+          <p className="text-xs text-muted-foreground">Pagamento processado pelo PagBank. Os dados do cartão são digitados no ambiente seguro do PagBank — não passam pelo nosso sistema.</p>
         </CardContent>
       </Card>
 
@@ -64,9 +77,9 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
         <CardContent>
           {(payments ?? []).length === 0 ? <p className="text-sm text-muted-foreground">Nenhum pagamento ainda.</p> : (
             <ul className="divide-y divide-border text-sm">
-              {((payments ?? []) as { id: string; status: string; amount_cents: number; payment_method: string | null; paid_at: string | null; created_at: string }[]).map((p) => (
+              {((payments ?? []) as { id: string; status: string; amount_cents: number; payment_method: string | null; paid_at: string | null; created_at: string; kind: string }[]).map((p) => (
                 <li key={p.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
-                  <span>{formatDateTime(p.paid_at ?? p.created_at)} · {formatBRL(p.amount_cents)}{p.payment_method ? ` · ${p.payment_method.replace("_", " ").toLowerCase()}` : ""}</span>
+                  <span>{formatDateTime(p.paid_at ?? p.created_at)} · {formatBRL(p.amount_cents)}{p.payment_method ? ` · ${p.payment_method.replace("_", " ").toLowerCase()}` : ""}{p.kind === "recorrente" ? " · recorrente" : ""}</span>
                   <Badge tone={p.status === "pago" ? "success" : p.status === "pendente" ? "warning" : "neutral"}>{PAY_STATUS[p.status] ?? p.status}</Badge>
                 </li>
               ))}

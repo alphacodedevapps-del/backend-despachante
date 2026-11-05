@@ -7,11 +7,16 @@ import { createClient } from "@/lib/supabase/server";
 import { siteUrl } from "@/lib/supabase/env";
 import { fail, type ActionResult } from "@/lib/errors";
 import { getBillingConfig } from "@/lib/billing/config";
-import { createCheckout, getCheckout, getOrder, PagBankError } from "@/lib/billing/pagbank";
+import { createCheckout, getCheckout, getOrder, PagBankError, type CheckoutKind } from "@/lib/billing/pagbank";
 import { applyOrderToPayment } from "@/lib/billing/apply";
 
-/** Cria um checkout PagBank de 30 dias e devolve o link de pagamento. */
-export async function startCheckoutAction(): Promise<ActionResult<{ payUrl: string }>> {
+/**
+ * Cria um checkout PagBank e devolve o link de pagamento.
+ * - "avulso": Pix ou cartão, libera 30 dias.
+ * - "recorrente": cartão de crédito com cobrança mensal automática.
+ */
+export async function startCheckoutAction(kind: CheckoutKind = "avulso"): Promise<ActionResult<{ payUrl: string }>> {
+  if (kind !== "avulso" && kind !== "recorrente") return fail("Forma de pagamento inválida.");
   const ctx = await getSessionContext();
   if (!ctx) return fail("Sessão expirada. Entre novamente.");
   const cfg = getBillingConfig();
@@ -25,6 +30,7 @@ export async function startCheckoutAction(): Promise<ActionResult<{ payUrl: stri
     .select("id, pay_url, created_at")
     .eq("user_id", ctx.user.id)
     .eq("status", "pendente")
+    .eq("kind", kind)
     .gte("created_at", new Date(Date.now() - 60 * 60 * 1000).toISOString())
     .not("pay_url", "is", null)
     .order("created_at", { ascending: false })
@@ -34,22 +40,23 @@ export async function startCheckoutAction(): Promise<ActionResult<{ payUrl: stri
 
   const { data: payment, error } = await admin
     .from("payments")
-    .insert({ user_id: ctx.user.id, provider: "pagbank", status: "pendente", amount_cents: cfg.priceCents, period_days: cfg.periodDays })
+    .insert({ user_id: ctx.user.id, provider: "pagbank", kind, status: "pendente", amount_cents: cfg.priceCents, period_days: cfg.periodDays })
     .select("id")
     .single();
   if (error || !payment) return fail("Não foi possível iniciar o pagamento.");
 
   try {
     const checkout = await createCheckout({
+      kind,
       referenceId: payment.id as string,
       customer: { name: ctx.profile?.full_name ?? null, email: ctx.user.email || null },
-      itemName: `Central Acadêmica — acesso por ${cfg.periodDays} dias`,
+      itemName: kind === "recorrente" ? "Central Acadêmica — assinatura mensal" : `Central Acadêmica — acesso por ${cfg.periodDays} dias`,
       amountCents: cfg.priceCents,
       redirectUrl: `${siteUrl()}/assinatura?retorno=1`,
       notificationUrl: `${siteUrl()}/api/pagbank/webhook`,
       expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
     });
-    await admin.from("payments").update({ checkout_id: checkout.id, pay_url: checkout.payUrl, raw: { checkout: checkout.raw } }).eq("id", payment.id);
+    await admin.from("payments").update({ checkout_id: checkout.id, pay_url: checkout.payUrl, plan_id: checkout.planId, raw: { checkout: checkout.raw } }).eq("id", payment.id);
     return { ok: true, data: { payUrl: checkout.payUrl } };
   } catch (e) {
     await admin.from("payments").update({ status: "cancelado", raw: { error: (e as Error).message } }).eq("id", payment.id);
