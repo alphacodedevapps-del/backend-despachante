@@ -208,7 +208,6 @@ const ENTITY_REFINEMENTS: Record<string, Refinement> = {
   semesters: dateOrder("start_date", "end_date", "O término deve ser posterior ao início."),
   events: dateOrder("start_at", "end_at", "O término deve ser posterior ao início."),
   projects: dateOrder("start_date", "due_date", "O prazo deve ser posterior ao início."),
-  internships: dateOrder("start_date", "end_date", "O término deve ser posterior ao início."),
   league_activities: dateOrder("starts_at", "ends_at", "O término deve ser posterior ao início."),
   assessments: (d) =>
     typeof d.score === "number" && typeof d.max_score === "number" && d.score > d.max_score

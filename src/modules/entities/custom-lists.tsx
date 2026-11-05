@@ -6,7 +6,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
 import type { SessionContext } from "@/lib/session";
 import { canEditRow } from "@/lib/permissions";
-import { formatNumber } from "@/lib/utils/format";
 import { KanbanBoard, type KanbanCard } from "@/modules/projects/kanban";
 import { ENTITY_MAP, optionLabel } from "./definitions";
 import type { ResolvedRoute } from "./resolve";
@@ -72,33 +71,8 @@ function QuestionsBanner() {
   );
 }
 
-async function HoursSummary({ ctx }: Props) {
-  const supabase = await createClient();
-  const { data } = await supabase.from("complementary_activities").select("category, hours, status").eq("workspace_id", ctx.workspace.id).limit(5000);
-  const rows = (data ?? []) as { category: string; hours: number; status: string }[];
-  const field = ENTITY_MAP.complementary_activities.fields.find((f) => f.name === "category")!;
-  const valid = rows.filter((r) => r.status !== "rejeitada");
-  const total = valid.reduce((s, r) => s + Number(r.hours), 0);
-  const validated = rows.filter((r) => r.status === "validada").reduce((s, r) => s + Number(r.hours), 0);
-  const byCat = new Map<string, number>();
-  for (const r of valid) byCat.set(r.category, (byCat.get(r.category) ?? 0) + Number(r.hours));
-  return (
-    <div className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-      <Card><CardContent className="pt-5"><p className="text-xs text-muted-foreground">Total (exceto rejeitadas)</p><p className="text-2xl font-semibold tabular-nums">{formatNumber(total, 1)} h</p></CardContent></Card>
-      <Card><CardContent className="pt-5"><p className="text-xs text-muted-foreground">Validadas</p><p className="text-2xl font-semibold tabular-nums">{formatNumber(validated, 1)} h</p></CardContent></Card>
-      <Card className="sm:col-span-2"><CardContent className="pt-5 text-sm">
-        <p className="mb-1 text-xs text-muted-foreground">Por categoria</p>
-        {byCat.size === 0 ? <p className="text-muted-foreground">Sem registros.</p> : (
-          <ul className="flex flex-wrap gap-x-4 gap-y-1">{Array.from(byCat.entries()).map(([k, v]) => <li key={k}>{optionLabel(field, k)}: <strong className="tabular-nums">{formatNumber(v, 1)} h</strong></li>)}</ul>
-        )}
-      </CardContent></Card>
-    </div>
-  );
-}
-
 export const CUSTOM_LISTS: Record<string, (props: Props) => React.ReactNode | Promise<React.ReactNode>> = {
   projects: ProjectsBoard,
   flashcards: FlashcardsBanner,
   questions: QuestionsBanner,
-  complementary_activities: HoursSummary,
 };

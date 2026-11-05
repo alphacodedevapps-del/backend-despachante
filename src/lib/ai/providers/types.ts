@@ -1,6 +1,14 @@
+export interface ImageInput {
+  mediaType: "image/png" | "image/jpeg" | "image/webp";
+  /** Conteúdo em base64 (sem prefixo data:). */
+  data: string;
+}
+
 export interface ChatTurn {
   role: "user" | "assistant";
   content: string;
+  /** Imagens anexadas à mensagem do usuário (leitura por visão computacional). */
+  images?: ImageInput[];
 }
 
 export interface ChatRequest {

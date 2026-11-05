@@ -154,7 +154,6 @@ export async function submitQuizAction(quizId: string, startedAt: string, answer
     .single();
   if (error || !attempt) return fail(friendlyDbError(error));
   revalidatePath("/simulados");
-  revalidatePath("/desempenho");
   return { ok: true, data: { attemptId: attempt.id as string } };
 }
 

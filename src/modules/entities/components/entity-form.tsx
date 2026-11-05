@@ -26,6 +26,10 @@ interface Props {
   cancelHref: string;
   /** Para onde ir após salvar (padrão: página do registro). */
   afterSaveHref?: string;
+  /** Valores vindos de fora (ex.: leitura de imagem pela IA). Preenche apenas campos vazios. */
+  externalValues?: { values: FormValues; version: number } | null;
+  /** Executado após criar o registro, antes de navegar (ex.: anexar arquivos). */
+  onCreated?: (id: string) => Promise<void>;
 }
 
 /** Converte valores de datetime (ISO ↔ input local). */
@@ -46,7 +50,7 @@ function toSubmitValues(fields: FieldDef[], values: FormValues): FormValues {
   return out;
 }
 
-export function EntityForm({ entityKey, mode, recordId, initialValues, refOptions, cancelHref, afterSaveHref }: Props) {
+export function EntityForm({ entityKey, mode, recordId, initialValues, refOptions, cancelHref, afterSaveHref, externalValues, onCreated }: Props) {
   const entity = ENTITY_MAP[entityKey];
   const router = useRouter();
   const [formError, setFormError] = React.useState<string | null>(null);
@@ -73,6 +77,20 @@ export function EntityForm({ entityKey, mode, recordId, initialValues, refOption
     formState: { errors, isSubmitting, isDirty },
   } = useForm<FormValues>({ defaultValues: toFormValues(entity.fields, initialValues), resolver });
 
+  // Aplica valores externos somente em campos ainda vazios (não sobrescreve o que o usuário digitou).
+  React.useEffect(() => {
+    if (!externalValues) return;
+    for (const [name, value] of Object.entries(externalValues.values)) {
+      const field = entity.fields.find((f) => f.name === name);
+      if (!field || value === null || value === undefined || (Array.isArray(value) && value.length === 0)) continue;
+      const current = getValues(name);
+      const empty = current === "" || current === null || current === undefined || (Array.isArray(current) && current.length === 0);
+      if (!empty) continue;
+      const v = field.type === "number" || field.type === "integer" ? String(value) : value;
+      setValue(name, v, { shouldDirty: true, shouldValidate: false });
+    }
+  }, [externalValues, entity, getValues, setValue]);
+
   const hasOptions = entity.fields.some((f) => f.type === "options");
   const questionType = hasOptions ? watch("question_type") : undefined;
 
@@ -85,6 +103,13 @@ export function EntityForm({ entityKey, mode, recordId, initialValues, refOption
       for (const [k, m] of Object.entries(res.fieldErrors ?? {})) setError(k, { type: "server", message: m });
       toast.error(res.error);
       return;
+    }
+    if (mode === "create" && onCreated) {
+      try {
+        await onCreated(res.data.id);
+      } catch (e) {
+        toast.error((e as Error).message || "O registro foi criado, mas houve falha em uma etapa complementar.");
+      }
     }
     toast.success(mode === "create" ? `${entity.singular} criado(a) com sucesso.` : "Alterações salvas.");
     router.push(afterSaveHref ?? `/${entity.slug}/${res.data.id}`);

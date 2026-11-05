@@ -24,7 +24,7 @@ export default async function AssessmentLibraryPage() {
   return (
     <div className="space-y-6">
       <PageHeader title="Avaliação fisioterapêutica" description="Biblioteca de testes, escalas e medidas organizada por categoria de avaliação." icon="ClipboardList"
-        actions={<><Link href="/testes/novo" className={buttonVariants()}><Plus /> Novo teste ou escala</Link><Link href="/calculadoras" className={buttonVariants({ variant: "outline" })}>Calculadoras</Link></>} />
+        actions={<><Link href="/testes/novo" className={buttonVariants()}><Plus /> Novo teste ou escala</Link></>} />
       <div className="grid gap-4 md:grid-cols-2">
         {(catField.options ?? []).map((c) => {
           const list = tests.filter((t) => t.test_category === c.value);

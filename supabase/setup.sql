@@ -2263,51 +2263,6 @@ create policy medications_update on public.medications for update to authenticat
 create policy medications_delete on public.medications for delete to authenticated
   using (public.can_edit_row(workspace_id, created_by));
 
--- Glossário técnico (glossary_terms)
-
-create table public.glossary_terms (
-  id uuid primary key default gen_random_uuid(),
-  workspace_id uuid not null references public.workspaces (id) on delete cascade,
-  created_by uuid default auth.uid() references auth.users (id) on delete set null,
-  term text not null,
-  definition text not null,
-  category text,
-  example text,
-  reference text,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  constraint glossary_terms_term_chk0 check (char_length(term) <= 200),
-  constraint glossary_terms_term_chk1 check (char_length(btrim(term)) > 0),
-  constraint glossary_terms_definition_chk0 check (char_length(definition) <= 200000),
-  constraint glossary_terms_definition_chk1 check (char_length(btrim(definition)) > 0),
-  constraint glossary_terms_category_chk0 check (char_length(category) <= 1000),
-  constraint glossary_terms_example_chk0 check (char_length(example) <= 20000),
-  constraint glossary_terms_reference_chk0 check (char_length(reference) <= 20000)
-);
-
-create index glossary_terms_ws_idx on public.glossary_terms (workspace_id, created_at desc);
-
-create trigger glossary_terms_protect before update on public.glossary_terms
-  for each row execute function public.protect_ownership();
-
-create trigger glossary_terms_index after insert or update or delete on public.glossary_terms
-  for each row execute function public.tg_index_entity('term', 'category', 'definition', 'example');
-
-alter table public.glossary_terms enable row level security;
-
-create policy glossary_terms_select on public.glossary_terms for select to authenticated
-  using (public.is_workspace_member(workspace_id));
-
-create policy glossary_terms_insert on public.glossary_terms for insert to authenticated
-  with check (public.can_write_workspace(workspace_id) and created_by = auth.uid());
-
-create policy glossary_terms_update on public.glossary_terms for update to authenticated
-  using (public.can_edit_row(workspace_id, created_by))
-  with check (public.can_edit_row(workspace_id, created_by));
-
-create policy glossary_terms_delete on public.glossary_terms for delete to authenticated
-  using (public.can_edit_row(workspace_id, created_by));
-
 -- Casos clínicos (clinical_cases)
 
 create table public.clinical_cases (
@@ -2704,59 +2659,6 @@ create policy clinical_evolutions_update on public.clinical_evolutions for updat
 create policy clinical_evolutions_delete on public.clinical_evolutions for delete to authenticated
   using (public.can_edit_row(workspace_id, created_by));
 
--- Biblioteca de condutas (clinical_conducts)
-
-create table public.clinical_conducts (
-  id uuid primary key default gen_random_uuid(),
-  workspace_id uuid not null references public.workspaces (id) on delete cascade,
-  created_by uuid default auth.uid() references auth.users (id) on delete set null,
-  name text not null,
-  specialty text,
-  objective text,
-  description text,
-  parameters text,
-  indications text,
-  contraindications text,
-  references_text text,
-  tags text[] default '{}'::text[] not null,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  constraint clinical_conducts_name_chk0 check (char_length(name) <= 200),
-  constraint clinical_conducts_name_chk1 check (char_length(btrim(name)) > 0),
-  constraint clinical_conducts_specialty_chk0 check (char_length(specialty) <= 64),
-  constraint clinical_conducts_specialty_chk1 check (specialty is null or specialty in ('traumato_ortopedia', 'neurofuncional', 'cardiovascular', 'respiratoria', 'esportiva', 'pediatrica', 'gerontologia', 'saude_mulher', 'outra')),
-  constraint clinical_conducts_objective_chk0 check (char_length(objective) <= 20000),
-  constraint clinical_conducts_description_chk0 check (char_length(description) <= 200000),
-  constraint clinical_conducts_parameters_chk0 check (char_length(parameters) <= 20000),
-  constraint clinical_conducts_indications_chk0 check (char_length(indications) <= 20000),
-  constraint clinical_conducts_contraindications_chk0 check (char_length(contraindications) <= 20000),
-  constraint clinical_conducts_references_text_chk0 check (char_length(references_text) <= 200000),
-  constraint clinical_conducts_tags_chk0 check (cardinality(tags) <= 50)
-);
-
-create index clinical_conducts_ws_idx on public.clinical_conducts (workspace_id, created_at desc);
-
-create trigger clinical_conducts_protect before update on public.clinical_conducts
-  for each row execute function public.protect_ownership();
-
-create trigger clinical_conducts_index after insert or update or delete on public.clinical_conducts
-  for each row execute function public.tg_index_entity('name', 'objective', 'objective', 'description', 'indications');
-
-alter table public.clinical_conducts enable row level security;
-
-create policy clinical_conducts_select on public.clinical_conducts for select to authenticated
-  using (public.is_workspace_member(workspace_id));
-
-create policy clinical_conducts_insert on public.clinical_conducts for insert to authenticated
-  with check (public.can_write_workspace(workspace_id) and created_by = auth.uid());
-
-create policy clinical_conducts_update on public.clinical_conducts for update to authenticated
-  using (public.can_edit_row(workspace_id, created_by))
-  with check (public.can_edit_row(workspace_id, created_by));
-
-create policy clinical_conducts_delete on public.clinical_conducts for delete to authenticated
-  using (public.can_edit_row(workspace_id, created_by));
-
 -- Flashcards (flashcards)
 
 create table public.flashcards (
@@ -2905,77 +2807,6 @@ create policy questions_update on public.questions for update to authenticated
 create policy questions_delete on public.questions for delete to authenticated
   using (public.can_edit_row(workspace_id, created_by));
 
--- Metas acadêmicas (study_goals)
-
-create table public.study_goals (
-  id uuid primary key default gen_random_uuid(),
-  workspace_id uuid not null references public.workspaces (id) on delete cascade,
-  created_by uuid default auth.uid() references auth.users (id) on delete set null,
-  title text not null,
-  description text,
-  subject_id uuid,
-  target_date date,
-  progress integer default 0,
-  status text default 'ativa',
-  steps jsonb default '[]'::jsonb not null,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  constraint study_goals_title_chk0 check (char_length(title) <= 200),
-  constraint study_goals_title_chk1 check (char_length(btrim(title)) > 0),
-  constraint study_goals_description_chk0 check (char_length(description) <= 20000),
-  constraint study_goals_progress_chk0 check (progress is null or progress >= 0),
-  constraint study_goals_progress_chk1 check (progress is null or progress <= 100),
-  constraint study_goals_status_chk0 check (char_length(status) <= 64),
-  constraint study_goals_status_chk1 check (status is null or status in ('ativa', 'concluida', 'pausada')),
-  constraint study_goals_steps_chk0 check (jsonb_typeof(steps) = 'array')
-);
-
-create index study_goals_ws_idx on public.study_goals (workspace_id, created_at desc);
-
-create index study_goals_subject_id_idx on public.study_goals (subject_id);
-
-create index study_goals_target_date_idx on public.study_goals (workspace_id, target_date);
-
-create index study_goals_status_idx on public.study_goals (workspace_id, status);
-
-create trigger study_goals_protect before update on public.study_goals
-  for each row execute function public.protect_ownership();
-
-create or replace function public.tg_study_goals_refs()
-returns trigger
-language plpgsql
-security definer
-set search_path = ''
-as $$
-begin
-  if tg_op = 'INSERT' or new.subject_id is distinct from old.subject_id then
-    perform public.assert_same_workspace('subjects', new.subject_id, new.workspace_id);
-  end if;
-  return new;
-end;
-$$;
-
-create trigger study_goals_refs before insert or update on public.study_goals
-  for each row execute function public.tg_study_goals_refs();
-
-create trigger study_goals_index after insert or update or delete on public.study_goals
-  for each row execute function public.tg_index_entity('title', '', 'description');
-
-alter table public.study_goals enable row level security;
-
-create policy study_goals_select on public.study_goals for select to authenticated
-  using (public.is_workspace_member(workspace_id));
-
-create policy study_goals_insert on public.study_goals for insert to authenticated
-  with check (public.can_write_workspace(workspace_id) and created_by = auth.uid());
-
-create policy study_goals_update on public.study_goals for update to authenticated
-  using (public.can_edit_row(workspace_id, created_by))
-  with check (public.can_edit_row(workspace_id, created_by));
-
-create policy study_goals_delete on public.study_goals for delete to authenticated
-  using (public.can_edit_row(workspace_id, created_by));
-
 -- Trabalhos e projetos (projects)
 
 create table public.projects (
@@ -3059,66 +2890,14 @@ create policy projects_update on public.projects for update to authenticated
 create policy projects_delete on public.projects for delete to authenticated
   using (public.can_edit_row(workspace_id, created_by));
 
--- Membros da liga (league_members)
-
-create table public.league_members (
-  id uuid primary key default gen_random_uuid(),
-  workspace_id uuid not null references public.workspaces (id) on delete cascade,
-  created_by uuid default auth.uid() references auth.users (id) on delete set null,
-  name text not null,
-  position text default 'membro',
-  email text,
-  course_period text,
-  joined_at date,
-  status text default 'ativo',
-  notes text,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  constraint league_members_name_chk0 check (char_length(name) <= 160),
-  constraint league_members_name_chk1 check (char_length(btrim(name)) > 0),
-  constraint league_members_position_chk0 check (char_length(position) <= 64),
-  constraint league_members_position_chk1 check (position is null or position in ('presidente', 'vice_presidente', 'secretario', 'tesoureiro', 'diretor_cientifico', 'diretor_extensao', 'diretor_marketing', 'orientador', 'membro')),
-  constraint league_members_email_chk0 check (char_length(email) <= 320),
-  constraint league_members_email_chk1 check (email is null or email ~* '^[^@\s]+@[^@\s]+\.[^@\s]+$'),
-  constraint league_members_course_period_chk0 check (char_length(course_period) <= 1000),
-  constraint league_members_status_chk0 check (char_length(status) <= 64),
-  constraint league_members_status_chk1 check (status is null or status in ('ativo', 'inativo')),
-  constraint league_members_notes_chk0 check (char_length(notes) <= 20000)
-);
-
-create index league_members_ws_idx on public.league_members (workspace_id, created_at desc);
-
-create index league_members_status_idx on public.league_members (workspace_id, status);
-
-create trigger league_members_protect before update on public.league_members
-  for each row execute function public.protect_ownership();
-
-create trigger league_members_index after insert or update or delete on public.league_members
-  for each row execute function public.tg_index_entity('name', 'position', 'position', 'notes');
-
-alter table public.league_members enable row level security;
-
-create policy league_members_select on public.league_members for select to authenticated
-  using (public.is_workspace_member(workspace_id));
-
-create policy league_members_insert on public.league_members for insert to authenticated
-  with check (public.can_write_workspace(workspace_id) and created_by = auth.uid());
-
-create policy league_members_update on public.league_members for update to authenticated
-  using (public.can_edit_row(workspace_id, created_by))
-  with check (public.can_edit_row(workspace_id, created_by));
-
-create policy league_members_delete on public.league_members for delete to authenticated
-  using (public.can_edit_row(workspace_id, created_by));
-
--- Atividades da liga (league_activities)
+-- Projetos e atividades da liga (league_activities)
 
 create table public.league_activities (
   id uuid primary key default gen_random_uuid(),
   workspace_id uuid not null references public.workspaces (id) on delete cascade,
   created_by uuid default auth.uid() references auth.users (id) on delete set null,
   title text not null,
-  activity_type text default 'reuniao' not null,
+  activity_type text default 'projeto_cientifico' not null,
   starts_at timestamptz,
   ends_at timestamptz,
   location text,
@@ -3135,7 +2914,7 @@ create table public.league_activities (
   constraint league_activities_title_chk1 check (char_length(btrim(title)) > 0),
   constraint league_activities_activity_type_chk0 check (char_length(activity_type) <= 64),
   constraint league_activities_activity_type_chk1 check (char_length(btrim(activity_type)) > 0),
-  constraint league_activities_activity_type_chk2 check (activity_type is null or activity_type in ('reuniao', 'aula', 'palestra', 'discussao_artigo', 'evento', 'congresso', 'projeto_cientifico', 'projeto_extensao', 'outro')),
+  constraint league_activities_activity_type_chk2 check (activity_type is null or activity_type in ('projeto_cientifico', 'projeto_extensao', 'outro')),
   constraint league_activities_location_chk0 check (char_length(location) <= 1000),
   constraint league_activities_speaker_chk0 check (char_length(speaker) <= 1000),
   constraint league_activities_body_region_chk0 check (char_length(body_region) <= 64),
@@ -3175,369 +2954,6 @@ create policy league_activities_update on public.league_activities for update to
   with check (public.can_edit_row(workspace_id, created_by));
 
 create policy league_activities_delete on public.league_activities for delete to authenticated
-  using (public.can_edit_row(workspace_id, created_by));
-
--- Estágios (internships)
-
-create table public.internships (
-  id uuid primary key default gen_random_uuid(),
-  workspace_id uuid not null references public.workspaces (id) on delete cascade,
-  created_by uuid default auth.uid() references auth.users (id) on delete set null,
-  institution text not null,
-  location text,
-  area text,
-  supervisor text,
-  start_date date,
-  end_date date,
-  planned_hours numeric,
-  status text default 'em_andamento',
-  activities text,
-  competencies text,
-  difficulties text,
-  reflections text,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  constraint internships_institution_chk0 check (char_length(institution) <= 200),
-  constraint internships_institution_chk1 check (char_length(btrim(institution)) > 0),
-  constraint internships_location_chk0 check (char_length(location) <= 1000),
-  constraint internships_area_chk0 check (char_length(area) <= 64),
-  constraint internships_area_chk1 check (area is null or area in ('traumato_ortopedia', 'neurofuncional', 'cardiovascular', 'respiratoria', 'esportiva', 'pediatrica', 'gerontologia', 'saude_mulher', 'outra')),
-  constraint internships_supervisor_chk0 check (char_length(supervisor) <= 1000),
-  constraint internships_planned_hours_chk0 check (planned_hours is null or planned_hours >= 0),
-  constraint internships_planned_hours_chk1 check (planned_hours is null or planned_hours <= 5000),
-  constraint internships_status_chk0 check (char_length(status) <= 64),
-  constraint internships_status_chk1 check (status is null or status in ('planejado', 'em_andamento', 'concluido')),
-  constraint internships_activities_chk0 check (char_length(activities) <= 200000),
-  constraint internships_competencies_chk0 check (char_length(competencies) <= 20000),
-  constraint internships_difficulties_chk0 check (char_length(difficulties) <= 20000),
-  constraint internships_reflections_chk0 check (char_length(reflections) <= 200000),
-  constraint internships_dates check (end_date is null or start_date is null or end_date >= start_date)
-);
-
-create index internships_ws_idx on public.internships (workspace_id, created_at desc);
-
-create index internships_status_idx on public.internships (workspace_id, status);
-
-create trigger internships_protect before update on public.internships
-  for each row execute function public.protect_ownership();
-
-create trigger internships_index after insert or update or delete on public.internships
-  for each row execute function public.tg_index_entity('institution', 'area', 'location', 'supervisor', 'area', 'activities', 'competencies');
-
-alter table public.internships enable row level security;
-
-create policy internships_select on public.internships for select to authenticated
-  using (public.is_workspace_member(workspace_id));
-
-create policy internships_insert on public.internships for insert to authenticated
-  with check (public.can_write_workspace(workspace_id) and created_by = auth.uid());
-
-create policy internships_update on public.internships for update to authenticated
-  using (public.can_edit_row(workspace_id, created_by))
-  with check (public.can_edit_row(workspace_id, created_by));
-
-create policy internships_delete on public.internships for delete to authenticated
-  using (public.can_edit_row(workspace_id, created_by));
-
--- Registros de estágio (internship_logs)
-
-create table public.internship_logs (
-  id uuid primary key default gen_random_uuid(),
-  workspace_id uuid not null references public.workspaces (id) on delete cascade,
-  created_by uuid default auth.uid() references auth.users (id) on delete set null,
-  internship_id uuid not null,
-  summary text not null,
-  log_date date not null,
-  hours numeric not null,
-  activities text,
-  reflections text,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  constraint internship_logs_summary_chk0 check (char_length(summary) <= 200),
-  constraint internship_logs_summary_chk1 check (char_length(btrim(summary)) > 0),
-  constraint internship_logs_hours_chk0 check (hours is null or hours >= 0),
-  constraint internship_logs_hours_chk1 check (hours is null or hours <= 24),
-  constraint internship_logs_activities_chk0 check (char_length(activities) <= 200000),
-  constraint internship_logs_reflections_chk0 check (char_length(reflections) <= 20000)
-);
-
-create index internship_logs_ws_idx on public.internship_logs (workspace_id, created_at desc);
-
-create index internship_logs_internship_id_idx on public.internship_logs (internship_id);
-
-create index internship_logs_log_date_idx on public.internship_logs (workspace_id, log_date);
-
-create trigger internship_logs_protect before update on public.internship_logs
-  for each row execute function public.protect_ownership();
-
-create or replace function public.tg_internship_logs_refs()
-returns trigger
-language plpgsql
-security definer
-set search_path = ''
-as $$
-begin
-  if tg_op = 'INSERT' or new.internship_id is distinct from old.internship_id then
-    perform public.assert_same_workspace('internships', new.internship_id, new.workspace_id);
-  end if;
-  return new;
-end;
-$$;
-
-create trigger internship_logs_refs before insert or update on public.internship_logs
-  for each row execute function public.tg_internship_logs_refs();
-
-create trigger internship_logs_index after insert or update or delete on public.internship_logs
-  for each row execute function public.tg_index_entity('summary', '', 'activities', 'reflections');
-
-alter table public.internship_logs enable row level security;
-
-create policy internship_logs_select on public.internship_logs for select to authenticated
-  using (public.is_workspace_member(workspace_id));
-
-create policy internship_logs_insert on public.internship_logs for insert to authenticated
-  with check (public.can_write_workspace(workspace_id) and created_by = auth.uid());
-
-create policy internship_logs_update on public.internship_logs for update to authenticated
-  using (public.can_edit_row(workspace_id, created_by))
-  with check (public.can_edit_row(workspace_id, created_by));
-
-create policy internship_logs_delete on public.internship_logs for delete to authenticated
-  using (public.can_edit_row(workspace_id, created_by));
-
--- Certificados e cursos (certificates)
-
-create table public.certificates (
-  id uuid primary key default gen_random_uuid(),
-  workspace_id uuid not null references public.workspaces (id) on delete cascade,
-  created_by uuid default auth.uid() references auth.users (id) on delete set null,
-  title text not null,
-  certificate_type text default 'curso' not null,
-  institution text,
-  issue_date date,
-  hours numeric,
-  credential_url text,
-  notes text,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  constraint certificates_title_chk0 check (char_length(title) <= 200),
-  constraint certificates_title_chk1 check (char_length(btrim(title)) > 0),
-  constraint certificates_certificate_type_chk0 check (char_length(certificate_type) <= 64),
-  constraint certificates_certificate_type_chk1 check (char_length(btrim(certificate_type)) > 0),
-  constraint certificates_certificate_type_chk2 check (certificate_type is null or certificate_type in ('curso', 'congresso', 'evento', 'palestra', 'monitoria', 'extensao', 'liga', 'estagio', 'publicacao', 'apresentacao', 'outro')),
-  constraint certificates_institution_chk0 check (char_length(institution) <= 1000),
-  constraint certificates_hours_chk0 check (hours is null or hours >= 0),
-  constraint certificates_hours_chk1 check (hours is null or hours <= 5000),
-  constraint certificates_credential_url_chk0 check (char_length(credential_url) <= 2000),
-  constraint certificates_credential_url_chk1 check (credential_url is null or credential_url ~* '^https?://'),
-  constraint certificates_notes_chk0 check (char_length(notes) <= 20000)
-);
-
-create index certificates_ws_idx on public.certificates (workspace_id, created_at desc);
-
-create index certificates_issue_date_idx on public.certificates (workspace_id, issue_date);
-
-create trigger certificates_protect before update on public.certificates
-  for each row execute function public.protect_ownership();
-
-create trigger certificates_index after insert or update or delete on public.certificates
-  for each row execute function public.tg_index_entity('title', 'institution', 'institution', 'notes');
-
-alter table public.certificates enable row level security;
-
-create policy certificates_select on public.certificates for select to authenticated
-  using (public.is_workspace_member(workspace_id));
-
-create policy certificates_insert on public.certificates for insert to authenticated
-  with check (public.can_write_workspace(workspace_id) and created_by = auth.uid());
-
-create policy certificates_update on public.certificates for update to authenticated
-  using (public.can_edit_row(workspace_id, created_by))
-  with check (public.can_edit_row(workspace_id, created_by));
-
-create policy certificates_delete on public.certificates for delete to authenticated
-  using (public.can_edit_row(workspace_id, created_by));
-
--- Horas complementares (complementary_activities)
-
-create table public.complementary_activities (
-  id uuid primary key default gen_random_uuid(),
-  workspace_id uuid not null references public.workspaces (id) on delete cascade,
-  created_by uuid default auth.uid() references auth.users (id) on delete set null,
-  title text not null,
-  category text default 'ensino' not null,
-  activity_date date,
-  hours numeric not null,
-  institution text,
-  certificate_id uuid,
-  status text default 'pendente',
-  notes text,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  constraint complementary_activities_title_chk0 check (char_length(title) <= 200),
-  constraint complementary_activities_title_chk1 check (char_length(btrim(title)) > 0),
-  constraint complementary_activities_category_chk0 check (char_length(category) <= 64),
-  constraint complementary_activities_category_chk1 check (char_length(btrim(category)) > 0),
-  constraint complementary_activities_category_chk2 check (category is null or category in ('ensino', 'pesquisa', 'extensao', 'cultural', 'representacao', 'outro')),
-  constraint complementary_activities_hours_chk0 check (hours is null or hours >= 0),
-  constraint complementary_activities_hours_chk1 check (hours is null or hours <= 2000),
-  constraint complementary_activities_institution_chk0 check (char_length(institution) <= 1000),
-  constraint complementary_activities_status_chk0 check (char_length(status) <= 64),
-  constraint complementary_activities_status_chk1 check (status is null or status in ('pendente', 'validada', 'rejeitada')),
-  constraint complementary_activities_notes_chk0 check (char_length(notes) <= 20000)
-);
-
-create index complementary_activities_ws_idx on public.complementary_activities (workspace_id, created_at desc);
-
-create index complementary_activities_certificate_id_idx on public.complementary_activities (certificate_id);
-
-create index complementary_activities_activity_date_idx on public.complementary_activities (workspace_id, activity_date);
-
-create index complementary_activities_status_idx on public.complementary_activities (workspace_id, status);
-
-create trigger complementary_activities_protect before update on public.complementary_activities
-  for each row execute function public.protect_ownership();
-
-create or replace function public.tg_complementary_activities_refs()
-returns trigger
-language plpgsql
-security definer
-set search_path = ''
-as $$
-begin
-  if tg_op = 'INSERT' or new.certificate_id is distinct from old.certificate_id then
-    perform public.assert_same_workspace('certificates', new.certificate_id, new.workspace_id);
-  end if;
-  return new;
-end;
-$$;
-
-create trigger complementary_activities_refs before insert or update on public.complementary_activities
-  for each row execute function public.tg_complementary_activities_refs();
-
-create trigger complementary_activities_index after insert or update or delete on public.complementary_activities
-  for each row execute function public.tg_index_entity('title', 'institution', 'institution', 'notes');
-
-alter table public.complementary_activities enable row level security;
-
-create policy complementary_activities_select on public.complementary_activities for select to authenticated
-  using (public.is_workspace_member(workspace_id));
-
-create policy complementary_activities_insert on public.complementary_activities for insert to authenticated
-  with check (public.can_write_workspace(workspace_id) and created_by = auth.uid());
-
-create policy complementary_activities_update on public.complementary_activities for update to authenticated
-  using (public.can_edit_row(workspace_id, created_by))
-  with check (public.can_edit_row(workspace_id, created_by));
-
-create policy complementary_activities_delete on public.complementary_activities for delete to authenticated
-  using (public.can_edit_row(workspace_id, created_by));
-
--- Portfólio (portfolio_items)
-
-create table public.portfolio_items (
-  id uuid primary key default gen_random_uuid(),
-  workspace_id uuid not null references public.workspaces (id) on delete cascade,
-  created_by uuid default auth.uid() references auth.users (id) on delete set null,
-  title text not null,
-  item_type text default 'experiencia' not null,
-  institution text,
-  role text,
-  start_date date,
-  end_date date,
-  description text,
-  url text,
-  include_in_cv boolean default true not null,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  constraint portfolio_items_title_chk0 check (char_length(title) <= 200),
-  constraint portfolio_items_title_chk1 check (char_length(btrim(title)) > 0),
-  constraint portfolio_items_item_type_chk0 check (char_length(item_type) <= 64),
-  constraint portfolio_items_item_type_chk1 check (char_length(btrim(item_type)) > 0),
-  constraint portfolio_items_item_type_chk2 check (item_type is null or item_type in ('experiencia', 'formacao', 'curso', 'congresso', 'monitoria', 'publicacao', 'apresentacao', 'extensao', 'competencia', 'idioma', 'premio', 'outro')),
-  constraint portfolio_items_institution_chk0 check (char_length(institution) <= 1000),
-  constraint portfolio_items_role_chk0 check (char_length(role) <= 1000),
-  constraint portfolio_items_description_chk0 check (char_length(description) <= 200000),
-  constraint portfolio_items_url_chk0 check (char_length(url) <= 2000),
-  constraint portfolio_items_url_chk1 check (url is null or url ~* '^https?://')
-);
-
-create index portfolio_items_ws_idx on public.portfolio_items (workspace_id, created_at desc);
-
-create index portfolio_items_start_date_idx on public.portfolio_items (workspace_id, start_date);
-
-create trigger portfolio_items_protect before update on public.portfolio_items
-  for each row execute function public.protect_ownership();
-
-create trigger portfolio_items_index after insert or update or delete on public.portfolio_items
-  for each row execute function public.tg_index_entity('title', 'institution', 'institution', 'role', 'description');
-
-alter table public.portfolio_items enable row level security;
-
-create policy portfolio_items_select on public.portfolio_items for select to authenticated
-  using (public.is_workspace_member(workspace_id));
-
-create policy portfolio_items_insert on public.portfolio_items for insert to authenticated
-  with check (public.can_write_workspace(workspace_id) and created_by = auth.uid());
-
-create policy portfolio_items_update on public.portfolio_items for update to authenticated
-  using (public.can_edit_row(workspace_id, created_by))
-  with check (public.can_edit_row(workspace_id, created_by));
-
-create policy portfolio_items_delete on public.portfolio_items for delete to authenticated
-  using (public.can_edit_row(workspace_id, created_by));
-
--- Metas profissionais (professional_goals)
-
-create table public.professional_goals (
-  id uuid primary key default gen_random_uuid(),
-  workspace_id uuid not null references public.workspaces (id) on delete cascade,
-  created_by uuid default auth.uid() references auth.users (id) on delete set null,
-  title text not null,
-  description text,
-  deadline date,
-  progress integer default 0,
-  status text default 'ativa',
-  steps jsonb default '[]'::jsonb not null,
-  notes text,
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  constraint professional_goals_title_chk0 check (char_length(title) <= 200),
-  constraint professional_goals_title_chk1 check (char_length(btrim(title)) > 0),
-  constraint professional_goals_description_chk0 check (char_length(description) <= 20000),
-  constraint professional_goals_progress_chk0 check (progress is null or progress >= 0),
-  constraint professional_goals_progress_chk1 check (progress is null or progress <= 100),
-  constraint professional_goals_status_chk0 check (char_length(status) <= 64),
-  constraint professional_goals_status_chk1 check (status is null or status in ('ativa', 'concluida', 'pausada')),
-  constraint professional_goals_steps_chk0 check (jsonb_typeof(steps) = 'array'),
-  constraint professional_goals_notes_chk0 check (char_length(notes) <= 20000)
-);
-
-create index professional_goals_ws_idx on public.professional_goals (workspace_id, created_at desc);
-
-create index professional_goals_deadline_idx on public.professional_goals (workspace_id, deadline);
-
-create index professional_goals_status_idx on public.professional_goals (workspace_id, status);
-
-create trigger professional_goals_protect before update on public.professional_goals
-  for each row execute function public.protect_ownership();
-
-create trigger professional_goals_index after insert or update or delete on public.professional_goals
-  for each row execute function public.tg_index_entity('title', '', 'description', 'notes');
-
-alter table public.professional_goals enable row level security;
-
-create policy professional_goals_select on public.professional_goals for select to authenticated
-  using (public.is_workspace_member(workspace_id));
-
-create policy professional_goals_insert on public.professional_goals for insert to authenticated
-  with check (public.can_write_workspace(workspace_id) and created_by = auth.uid());
-
-create policy professional_goals_update on public.professional_goals for update to authenticated
-  using (public.can_edit_row(workspace_id, created_by))
-  with check (public.can_edit_row(workspace_id, created_by));
-
-create policy professional_goals_delete on public.professional_goals for delete to authenticated
   using (public.can_edit_row(workspace_id, created_by));
 
 -- Chaves estrangeiras entre tabelas de conteúdo
@@ -3594,17 +3010,8 @@ alter table public.flashcards
 alter table public.questions
   add constraint questions_subject_id_fkey foreign key (subject_id) references public.subjects (id) on delete set null;
 
-alter table public.study_goals
-  add constraint study_goals_subject_id_fkey foreign key (subject_id) references public.subjects (id) on delete set null;
-
 alter table public.projects
   add constraint projects_subject_id_fkey foreign key (subject_id) references public.subjects (id) on delete set null;
-
-alter table public.internship_logs
-  add constraint internship_logs_internship_id_fkey foreign key (internship_id) references public.internships (id) on delete cascade;
-
-alter table public.complementary_activities
-  add constraint complementary_activities_certificate_id_fkey foreign key (certificate_id) references public.certificates (id) on delete set null;
 
 
 -- >>> supabase/migrations/20260101000003_documents_studies_extras.sql
@@ -4489,5 +3896,161 @@ begin
     join allowed a on a.id = f.id
    order by f.score desc
    limit v_limit;
+end;
+$$;
+
+-- >>> supabase/migrations/20260101000006_scope_simplification.sql
+-- =====================================================================
+-- Migration 0006: simplificação do escopo.
+-- Remove módulos descontinuados: metas acadêmicas, glossário técnico,
+-- biblioteca de condutas, membros/perfil da liga, certificados e todo o
+-- desenvolvimento profissional (estágios, registros de estágio, horas
+-- complementares, portfólio e metas profissionais). A tabela
+-- league_activities passa a registrar apenas projetos e atividades.
+-- Idempotente: pode ser aplicada em bancos novos ou já existentes.
+-- =====================================================================
+
+-- Relacionamentos e índice de busca dos tipos removidos
+delete from public.entity_links
+ where source_type in ('study_goals','glossary_terms','clinical_conducts','league_members','internships','internship_logs','certificates','complementary_activities','portfolio_items','professional_goals')
+    or target_type in ('study_goals','glossary_terms','clinical_conducts','league_members','internships','internship_logs','certificates','complementary_activities','portfolio_items','professional_goals');
+delete from public.search_index
+ where entity_type in ('study_goals','glossary_terms','clinical_conducts','league_members','internships','internship_logs','certificates','complementary_activities','portfolio_items','professional_goals');
+
+drop table if exists public.complementary_activities cascade;
+drop table if exists public.certificates cascade;
+drop table if exists public.internship_logs cascade;
+drop table if exists public.internships cascade;
+drop table if exists public.portfolio_items cascade;
+drop table if exists public.professional_goals cascade;
+drop table if exists public.study_goals cascade;
+drop table if exists public.glossary_terms cascade;
+drop table if exists public.clinical_conducts cascade;
+drop table if exists public.league_members cascade;
+drop table if exists public.league_profiles cascade;
+
+drop function if exists public.tg_complementary_activities_refs();
+drop function if exists public.tg_internship_logs_refs();
+drop function if exists public.tg_study_goals_refs();
+
+-- league_activities: somente projetos e atividades
+update public.league_activities set activity_type = 'outro'
+ where activity_type not in ('projeto_cientifico', 'projeto_extensao', 'outro');
+alter table public.league_activities drop constraint if exists league_activities_activity_type_chk2;
+alter table public.league_activities add constraint league_activities_activity_type_chk2
+  check (activity_type is null or activity_type in ('projeto_cientifico', 'projeto_extensao', 'outro'));
+alter table public.league_activities alter column activity_type set default 'projeto_cientifico';
+
+-- Notificações sem os módulos de metas
+create or replace function public.generate_my_notifications()
+returns integer
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_uid uuid := auth.uid();
+  v_prefs jsonb;
+  v_total integer := 0;
+  v_n integer;
+  v_tz text := 'America/Sao_Paulo';
+begin
+  if v_uid is null then
+    return 0;
+  end if;
+  select notification_prefs into v_prefs from public.user_preferences where user_id = v_uid;
+  v_prefs := coalesce(v_prefs, '{}'::jsonb);
+
+  if public.pref_enabled(v_prefs, 'prazos') then
+    insert into public.notifications (user_id, workspace_id, type, title, body, link, dedupe_key)
+    select v_uid, t.workspace_id, 'prazo', 'Prazo próximo: ' || left(t.title, 120),
+           'Vence em ' || to_char(t.due_at at time zone v_tz, 'DD/MM/YYYY "às" HH24:MI') || '.',
+           '/tarefas/' || t.id, 'task_due:' || t.id || ':' || (t.due_at at time zone v_tz)::date
+      from public.tasks t
+     where t.workspace_id in (select public.my_workspace_ids())
+       and t.created_by = v_uid
+       and t.status in ('pendente', 'em_andamento')
+       and t.due_at between now() and now() + interval '48 hours'
+    on conflict (user_id, dedupe_key) do nothing;
+    get diagnostics v_n = row_count; v_total := v_total + v_n;
+
+    insert into public.notifications (user_id, workspace_id, type, title, body, link, dedupe_key)
+    select v_uid, p.workspace_id, 'prazo', 'Projeto com prazo próximo: ' || left(p.name, 120),
+           'Prazo em ' || to_char(p.due_date, 'DD/MM/YYYY') || '.',
+           '/projetos/' || p.id, 'project_due:' || p.id || ':' || p.due_date
+      from public.projects p
+     where p.workspace_id in (select public.my_workspace_ids())
+       and p.status <> 'concluido'
+       and p.due_date between current_date and current_date + 3
+    on conflict (user_id, dedupe_key) do nothing;
+    get diagnostics v_n = row_count; v_total := v_total + v_n;
+  end if;
+
+  if public.pref_enabled(v_prefs, 'tarefas_atrasadas') then
+    insert into public.notifications (user_id, workspace_id, type, title, body, link, dedupe_key)
+    select v_uid, t.workspace_id, 'tarefa_atrasada', 'Tarefa atrasada: ' || left(t.title, 120),
+           'O prazo era ' || to_char(t.due_at at time zone v_tz, 'DD/MM/YYYY "às" HH24:MI') || '.',
+           '/tarefas/' || t.id, 'task_overdue:' || t.id || ':' || (t.due_at at time zone v_tz)::date
+      from public.tasks t
+     where t.workspace_id in (select public.my_workspace_ids())
+       and t.created_by = v_uid
+       and t.status in ('pendente', 'em_andamento')
+       and t.due_at < now()
+    on conflict (user_id, dedupe_key) do nothing;
+    get diagnostics v_n = row_count; v_total := v_total + v_n;
+  end if;
+
+  if public.pref_enabled(v_prefs, 'provas') then
+    insert into public.notifications (user_id, workspace_id, type, title, body, link, dedupe_key)
+    select v_uid, a.workspace_id, 'prova', 'Avaliação em breve: ' || left(a.title, 120),
+           'Agendada para ' || to_char(a.assessment_date at time zone v_tz, 'DD/MM/YYYY "às" HH24:MI') || '.',
+           '/provas/' || a.id, 'exam:' || a.id || ':' || (a.assessment_date at time zone v_tz)::date
+      from public.assessments a
+     where a.workspace_id in (select public.my_workspace_ids())
+       and a.status = 'agendada'
+       and a.assessment_date between now() and now() + interval '7 days'
+    on conflict (user_id, dedupe_key) do nothing;
+    get diagnostics v_n = row_count; v_total := v_total + v_n;
+
+    insert into public.notifications (user_id, workspace_id, type, title, body, link, dedupe_key)
+    select v_uid, e.workspace_id, 'prova', 'Prova na agenda: ' || left(e.title, 120),
+           'Em ' || to_char(e.start_at at time zone v_tz, 'DD/MM/YYYY "às" HH24:MI') || '.',
+           '/eventos/' || e.id, 'event_exam:' || e.id || ':' || (e.start_at at time zone v_tz)::date
+      from public.events e
+     where e.workspace_id in (select public.my_workspace_ids())
+       and e.category = 'prova'
+       and e.start_at between now() and now() + interval '7 days'
+    on conflict (user_id, dedupe_key) do nothing;
+    get diagnostics v_n = row_count; v_total := v_total + v_n;
+  end if;
+
+  if public.pref_enabled(v_prefs, 'revisoes') then
+    insert into public.notifications (user_id, workspace_id, type, title, body, link, dedupe_key)
+    select v_uid, f.workspace_id, 'revisao', 'Flashcards para revisar',
+           count(*) || ' cartão(ões) aguardando revisão.', '/flashcards/revisar',
+           'srs:' || f.workspace_id || ':' || (now() at time zone v_tz)::date
+      from public.flashcards f
+     where f.workspace_id in (select public.my_workspace_ids())
+       and f.created_by = v_uid
+       and f.next_review_at <= now()
+     group by f.workspace_id
+    on conflict (user_id, dedupe_key) do nothing;
+    get diagnostics v_n = row_count; v_total := v_total + v_n;
+  end if;
+
+  if public.pref_enabled(v_prefs, 'liga') then
+    insert into public.notifications (user_id, workspace_id, type, title, body, link, dedupe_key)
+    select v_uid, a.workspace_id, 'liga', 'Atividade da liga: ' || left(a.title, 120),
+           'Em ' || to_char(a.starts_at at time zone v_tz, 'DD/MM/YYYY "às" HH24:MI') || '.',
+           '/liga-atividades/' || a.id, 'league:' || a.id || ':' || (a.starts_at at time zone v_tz)::date
+      from public.league_activities a
+     where a.workspace_id in (select public.my_workspace_ids())
+       and a.status = 'planejada'
+       and a.starts_at between now() and now() + interval '3 days'
+    on conflict (user_id, dedupe_key) do nothing;
+    get diagnostics v_n = row_count; v_total := v_total + v_n;
+  end if;
+
+  return v_total;
 end;
 $$;

@@ -11,7 +11,7 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   serverExternalPackages: ["unpdf"],
   experimental: {
-    serverActions: { bodySizeLimit: "2mb" },
+    serverActions: { bodySizeLimit: "6mb" },
   },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];

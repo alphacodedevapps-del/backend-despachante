@@ -34,7 +34,14 @@ export function createOpenAiProvider(apiKey: string, model: string): ChatProvide
         {
           model,
           max_completion_tokens: req.maxTokens,
-          messages: [{ role: "system", content: req.system }, ...req.messages],
+          messages: [
+            { role: "system", content: req.system },
+            ...req.messages.map((m) =>
+              m.images?.length
+                ? { role: m.role, content: [...m.images.map((img) => ({ type: "image_url", image_url: { url: `data:${img.mediaType};base64,${img.data}` } })), { type: "text", text: m.content }] }
+                : { role: m.role, content: m.content },
+            ),
+          ],
         },
         req.signal,
       );

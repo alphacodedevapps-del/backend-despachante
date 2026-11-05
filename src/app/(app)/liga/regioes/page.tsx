@@ -16,7 +16,7 @@ const SOURCES = [
   { table: "clinical_tests", slug: "testes", label: "Testes especiais", title: "name" },
   { table: "exercises", slug: "exercicios", label: "Exercícios", title: "name" },
   { table: "anatomical_structures", slug: "atlas", label: "Estruturas anatômicas", title: "name" },
-  { table: "league_activities", slug: "liga-atividades", label: "Aulas e atividades da liga", title: "title" },
+  { table: "league_activities", slug: "liga-atividades", label: "Projetos e atividades da liga", title: "title" },
 ] as const;
 
 export default async function RegionsPage({ searchParams }: { searchParams: Promise<{ regiao?: string; foco?: string }> }) {
@@ -49,7 +49,7 @@ export default async function RegionsPage({ searchParams }: { searchParams: Prom
 
   return (
     <div className="space-y-6">
-      <PageHeader title={`${title} — conhecimento por região`} description="Patologias, testes, exercícios, estruturas e atividades organizados por região anatômica." icon="Bone" breadcrumbs={[{ label: "Liga", href: "/liga" }, { label: title }]} />
+      <PageHeader title={`${title} — conhecimento por região`} description="Patologias, testes, exercícios, estruturas e atividades organizados por região anatômica." icon="Bone" breadcrumbs={[{ label: "Liga acadêmica", href: "/liga/regioes" }, { label: title }]} />
       {foco && <Alert tone="info">Patologias filtradas pela tag “{foco}”. Adicione essa tag às patologias para incluí-las neste foco.</Alert>}
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-9">
         {REGIONS.map((r, i) => (

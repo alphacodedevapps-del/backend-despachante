@@ -5,7 +5,7 @@ import { ENTITIES } from "@/modules/entities/definitions";
 
 export const maxDuration = 60;
 
-const EXTRA_TABLES = ["documents", "article_collection_items", "project_stages", "flashcard_reviews", "quizzes", "quiz_questions", "quiz_attempts", "league_profiles", "entity_links", "ai_conversations", "ai_messages"];
+const EXTRA_TABLES = ["documents", "article_collection_items", "project_stages", "flashcard_reviews", "quizzes", "quiz_questions", "quiz_attempts", "entity_links", "ai_conversations", "ai_messages"];
 
 /** Exportação dos dados criados pelo usuário (portabilidade — LGPD). */
 export async function GET() {

@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { generateAbntReference, formatAuthors, formatAccessDate } from "@/lib/domain/abnt";
 import { reviewCard, resolveSrsSettings, DEFAULT_SRS } from "@/lib/domain/srs";
 import { gradeQuiz } from "@/lib/domain/quiz";
-import { calculateBmi, convertUnit, karvonen, maxHeartRateTanaka, weightedAverage } from "@/lib/domain/calculators";
 import { expandOccurrences } from "@/lib/domain/recurrence";
 import { chunkPages } from "@/lib/ai/chunking";
 
@@ -77,20 +76,6 @@ describe("Correção de simulados", () => {
   it("considera autoavaliação parcial das discursivas", () => {
     const r = gradeQuiz(qs, [{ question_id: "a", selected_option: 1 }, { question_id: "b", selected_option: 0 }, { question_id: "c", text_answer: "x", self_assessed: "parcial" }]);
     expect(r.score_percent).toBeCloseTo(83.33, 1);
-  });
-});
-
-describe("Calculadoras", () => {
-  it("IMC e classificação", () => {
-    expect(calculateBmi(70, 175)).toEqual({ bmi: 22.9, classification: "Eutrofia (peso adequado)" });
-    expect(calculateBmi(0, 175)).toBeNull();
-  });
-  it("FC máxima, Karvonen, média ponderada e conversões", () => {
-    expect(maxHeartRateTanaka(20)).toBe(194);
-    expect(karvonen(60, 194, 50)).toBe(127);
-    expect(weightedAverage([{ score: 8, weight: 2 }, { score: 5, weight: 1 }])).toBe(7);
-    expect(convertUnit("massa", 1, "kg", "g")).toBe(1000);
-    expect(convertUnit("massa", 1, "kg", "xx")).toBeNull();
   });
 });
 

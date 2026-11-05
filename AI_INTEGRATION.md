@@ -24,6 +24,14 @@ Cancelamento: o botão "parar" aborta o `fetch`; o servidor repassa `request.sig
 
 Documentos só entram na recuperação com `processing_status = 'concluido'`. Reprocessar remove os trechos anteriores; excluir o documento remove trechos e embeddings em cascata.
 
+## Importação de artigo por imagem
+Em **Artigos → Novo** (e em Editar), o painel "Preencher a partir de imagem" permite **tirar foto** (câmera do celular) ou **escolher imagens** PNG/JPG/WebP das páginas do artigo (até 6 por leitura).
+1. O navegador reduz cada imagem (lado máximo 1.800 px, JPEG) antes do envio.
+2. `extractArticleFromImagesAction` valida tipo pela assinatura binária e tamanho (≤ 4 MB), aplica os limites de uso e envia as imagens ao provedor com visão (Anthropic: blocos `image` base64; OpenAI: `image_url` em data URL).
+3. O modelo devolve JSON com título, autores, ano, DOI, revista, volume, número, páginas, URL, palavras-chave, área, tipo de estudo, objetivo, metodologia, amostra, resultados, conclusão e limitações. A resposta é validada com Zod (`research/article-extract.ts`): valores ilegíveis ou inválidos (URL não http, tipo de estudo fora da lista, ano impossível) viram vazio — **nada é inventado**.
+4. Os campos são preenchidos **apenas onde o formulário está vazio**; o usuário revisa e salva. Opcionalmente, as imagens são anexadas ao artigo como arquivos.
+As imagens não são armazenadas pela leitura em si; só ficam salvas se o usuário optar por anexá-las.
+
 ## Segurança
 - Recuperação executada com o cliente do usuário (RLS) e filtro explícito por workspaces do usuário **antes** do ranqueamento.
 - Conteúdo dos documentos é escapado (não consegue fechar `<fonte>`) e o prompt de sistema determina que fontes são dados, nunca instruções.

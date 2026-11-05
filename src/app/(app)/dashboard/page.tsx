@@ -3,13 +3,12 @@ import Link from "next/link";
 import { CalendarClock, Plus } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Icon } from "@/components/shared/icon";
 import { StatTile, ListCard, ListRow } from "@/components/dashboard/widgets";
 import { TrendLines, ChartTable } from "@/components/charts/charts";
 import { requireSession } from "@/lib/session";
 import { canWrite } from "@/lib/permissions";
-import { formatDate, formatDateTime, formatLong, formatNumber, formatRelative } from "@/lib/utils/format";
+import { formatDate, formatDateTime, formatLong, formatRelative } from "@/lib/utils/format";
 import { getDashboardData } from "@/modules/dashboard/queries";
 import { toneFor } from "@/modules/entities/components/field-value";
 import { ENTITY_MAP, optionLabel } from "@/modules/entities/definitions";
@@ -58,7 +57,7 @@ export default async function DashboardPage() {
         <StatTile label="Exercícios" value={d.stats.exercises} icon="Dumbbell" href="/exercicios" />
         <StatTile label="Tarefas pendentes" value={d.stats.pendingTasks} icon="ListChecks" href="/tarefas?status=pendente" />
         <StatTile label="Projetos em andamento" value={d.stats.activeProjects} icon="KanbanSquare" href="/projetos" />
-        <StatTile label="Horas complementares" value={formatNumber(d.stats.hours, 1)} icon="Clock" href="/horas-complementares" />
+        <StatTile label="Anotações" value={d.stats.notes} icon="NotebookPen" href="/caderno" />
       </section>
 
       {canWrite(ctx.workspace.role) && (
@@ -117,7 +116,7 @@ export default async function DashboardPage() {
         </ListCard>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-2">
         <ListCard title="Artigos adicionados recentemente" href="/artigos" empty="Nenhum artigo cadastrado.">
           {d.recentArticles.map((a) => (
             <ListRow key={a.id} href={`/artigos/${a.id}`} title={a.title} meta={[a.authors?.split(";")[0], a.year].filter(Boolean).join(" · ")} right={<Badge tone={toneFor(a.reading_status)}>{statusOf("articles", "reading_status", a.reading_status)}</Badge>} />
@@ -126,14 +125,6 @@ export default async function DashboardPage() {
         <ListCard title="Últimos conteúdos estudados" href="/caderno" empty="Nenhuma anotação ainda.">
           {d.recentNotes.map((n) => (
             <ListRow key={n.id} href={`/caderno/${n.id}`} title={n.title} meta={`${n.topic ? `${n.topic} · ` : ""}${formatRelative(n.updated_at)}`} right={<Badge tone={toneFor(n.study_status)}>{statusOf("study_notes", "study_status", n.study_status)}</Badge>} />
-          ))}
-        </ListCard>
-        <ListCard title="Metas acadêmicas" href="/metas-academicas" empty="Nenhuma meta ativa.">
-          {d.goals.map((g) => (
-            <li key={g.id} className="py-2">
-              <Link href={`/metas-academicas/${g.id}`} className="flex items-center justify-between text-sm font-medium hover:text-primary"><span className="truncate">{g.title}</span><span className="text-xs tabular-nums text-muted-foreground">{g.progress}%</span></Link>
-              <Progress value={g.progress} className="mt-1.5 h-1.5" label={`Progresso de ${g.title}`} />
-            </li>
           ))}
         </ListCard>
       </div>

@@ -19,7 +19,17 @@ export function createAnthropicProvider(apiKey: string, model: string, effort: s
             model,
             max_tokens: req.maxTokens,
             system: req.system,
-            messages: req.messages.map((m) => ({ role: m.role, content: m.content })),
+            messages: req.messages.map((m) =>
+              m.images?.length
+                ? {
+                    role: m.role,
+                    content: [
+                      ...m.images.map((img) => ({ type: "image" as const, source: { type: "base64" as const, media_type: img.mediaType, data: img.data } })),
+                      { type: "text" as const, text: m.content },
+                    ],
+                  }
+                : { role: m.role, content: m.content },
+            ),
             ...(effort !== "none" ? { output_config: { effort: effort as "low" | "medium" | "high" | "xhigh" | "max" } } : {}),
             ...(useFallback ? { betas: ["server-side-fallback-2026-07-01"], fallbacks: "default" as const } : {}),
           },

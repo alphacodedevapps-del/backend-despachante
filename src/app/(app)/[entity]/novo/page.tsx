@@ -8,6 +8,8 @@ import { presetsFromParams, resolveRoute } from "@/modules/entities/resolve";
 import { referenceOptions } from "@/modules/entities/queries";
 import { initialFormValues } from "@/modules/entities/schema";
 import { EntityForm } from "@/modules/entities/components/entity-form";
+import { ArticleImportForm } from "@/modules/research/article-import";
+import { publicAiStatus } from "@/lib/ai/config";
 
 type Params = Promise<{ entity: string }>;
 type Search = Promise<Record<string, string | string[] | undefined>>;
@@ -52,7 +54,11 @@ export default async function NewEntityPage({ params, searchParams }: { params: 
       <p className="mb-4 text-sm text-muted-foreground">
         Será salvo no workspace <strong className="text-foreground">{ctx.workspace.name}</strong>.
       </p>
-      <EntityForm entityKey={entity.key} mode="create" initialValues={initialFormValues(entity, null, presets)} refOptions={refOptions} cancelHref={back} />
+      {entity.key === "articles" ? (
+        <ArticleImportForm mode="create" initialValues={initialFormValues(entity, null, presets)} refOptions={refOptions} cancelHref={back} aiConfigured={publicAiStatus().chatConfigured} />
+      ) : (
+        <EntityForm entityKey={entity.key} mode="create" initialValues={initialFormValues(entity, null, presets)} refOptions={refOptions} cancelHref={back} />
+      )}
     </div>
   );
 }

@@ -67,3 +67,22 @@ describe("Segurança do contexto (RAG)", () => {
     expect(toPgVector([0.5, -1, Number.NaN])).toBe("[0.5000000,-1.0000000,0]");
   });
 });
+
+import { detectImage, extractedSchema, parseExtractionJson } from "@/modules/research/article-extract";
+
+describe("Importação de artigo por imagem", () => {
+  it("aceita somente PNG, JPG e WebP pela assinatura binária", () => {
+    expect(detectImage(new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0, 0, 0, 0, 0, 0, 0, 0]))).toBe("image/png");
+    expect(detectImage(new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0, 0, 0, 0, 0, 0, 0, 0]))).toBe("image/jpeg");
+    expect(detectImage(new Uint8Array([0x25, 0x50, 0x44, 0x46, 0, 0, 0, 0, 0, 0, 0, 0]))).toBeNull();
+  });
+  it("normaliza e descarta valores inválidos em vez de inventar", () => {
+    const r = extractedSchema.parse({ title: "  Reabilitação do LCA ", year: "2023", url: "javascript:alert(1)", study_type: "inventado", keywords: [" joelho ", ""], doi: "", objective: null });
+    expect(r).toMatchObject({ title: "Reabilitação do LCA", year: 2023, url: null, study_type: null, keywords: ["joelho"], doi: null, objective: null, authors: null });
+    expect(extractedSchema.parse({ year: 3000 }).year).toBeNull();
+  });
+  it("lê JSON mesmo dentro de bloco de código", () => {
+    expect(parseExtractionJson('```json\n{"title":"X"}\n```')).toEqual({ title: "X" });
+    expect(() => parseExtractionJson("sem json")).toThrow();
+  });
+});

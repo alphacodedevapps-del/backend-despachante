@@ -60,7 +60,7 @@ export async function getDashboardData(workspaceId: string) {
     return supabase.from(table).select("id", { count: "exact", head: true }).eq("workspace_id", workspaceId);
   }
 
-  const [subjects, articles, cases, pathologies, pathologiesStudied, exercises, pendingTasks, activeProjects, hoursRes] = await Promise.all([
+  const [subjects, articles, cases, pathologies, pathologiesStudied, exercises, pendingTasks, activeProjects, notesCount] = await Promise.all([
     count("subjects"),
     count("articles"),
     count("clinical_cases"),
@@ -69,12 +69,11 @@ export async function getDashboardData(workspaceId: string) {
     count("exercises"),
     count("tasks", (q) => q.in("status", ["pendente", "em_andamento"])),
     count("projects", (q) => q.in("status", ["em_andamento", "em_revisao"])),
-    supabase.from("complementary_activities").select("hours").eq("workspace_id", workspaceId).neq("status", "rejeitada").limit(5000),
+    count("study_notes"),
   ]);
-  const hours = ((hoursRes.data ?? []) as { hours: number }[]).reduce((s, r) => s + Number(r.hours), 0);
 
   const in30 = addDays(now, 30).toISOString();
-  const [exams, examEvents, dueProjects, tasks, recentArticles, recentNotes, projects, goals] = await Promise.all([
+  const [exams, examEvents, dueProjects, tasks, recentArticles, recentNotes, projects] = await Promise.all([
     supabase.from("assessments").select("id, title, assessment_date, subject_id").eq("workspace_id", workspaceId).eq("status", "agendada").gte("assessment_date", now.toISOString()).lte("assessment_date", in30).order("assessment_date").limit(6),
     supabase.from("events").select("id, title, start_at").eq("workspace_id", workspaceId).eq("category", "prova").gte("start_at", now.toISOString()).lte("start_at", in30).order("start_at").limit(6),
     supabase.from("projects").select("id, name, due_date, status").eq("workspace_id", workspaceId).neq("status", "concluido").not("due_date", "is", null).lte("due_date", format(addDays(now, 21), "yyyy-MM-dd")).order("due_date").limit(6),
@@ -82,7 +81,6 @@ export async function getDashboardData(workspaceId: string) {
     supabase.from("articles").select("id, title, authors, year, reading_status").eq("workspace_id", workspaceId).order("created_at", { ascending: false }).limit(5),
     supabase.from("study_notes").select("id, title, topic, study_status, updated_at").eq("workspace_id", workspaceId).order("updated_at", { ascending: false }).limit(5),
     supabase.from("projects").select("id, name, due_date, status").eq("workspace_id", workspaceId).in("status", ["em_andamento", "em_revisao"]).order("due_date", { nullsFirst: false }).limit(5),
-    supabase.from("study_goals").select("id, title, progress, target_date, steps").eq("workspace_id", workspaceId).eq("status", "ativa").order("target_date", { nullsFirst: false }).limit(5),
   ]);
 
   // Evolução semanal (últimas 8 semanas) a partir de registros reais
@@ -111,7 +109,7 @@ export async function getDashboardData(workspaceId: string) {
   const week = await getAgenda(workspaceId, startOfDay(now), addDays(startOfDay(now), 7));
 
   return {
-    stats: { subjects, articles, cases, pathologies, pathologiesStudied, exercises, pendingTasks, activeProjects, hours },
+    stats: { subjects, articles, cases, pathologies, pathologiesStudied, exercises, pendingTasks, activeProjects, notes: notesCount },
     exams: [
       ...((exams.data ?? []) as { id: string; title: string; assessment_date: string }[]).map((e) => ({ id: e.id, title: e.title, date: e.assessment_date, href: `/provas/${e.id}` })),
       ...((examEvents.data ?? []) as { id: string; title: string; start_at: string }[]).map((e) => ({ id: e.id, title: e.title, date: e.start_at, href: `/eventos/${e.id}` })),
@@ -121,7 +119,6 @@ export async function getDashboardData(workspaceId: string) {
     recentArticles: (recentArticles.data ?? []) as { id: string; title: string; authors: string | null; year: number | null; reading_status: string }[],
     recentNotes: (recentNotes.data ?? []) as { id: string; title: string; topic: string | null; study_status: string; updated_at: string }[],
     projects: (projects.data ?? []) as { id: string; name: string; due_date: string | null; status: string }[],
-    goals: (goals.data ?? []) as { id: string; title: string; progress: number; target_date: string | null }[],
     evolution: weeks.map(({ label, revisoes, simulados, anotacoes, artigos }) => ({ label, revisoes, simulados, anotacoes, artigos })),
     week,
   };

@@ -1,6 +1,6 @@
 import type * as React from "react";
 import Link from "next/link";
-import { CalendarClock, Layers, Timer } from "lucide-react";
+import { Layers, Timer } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -189,19 +189,6 @@ function QuestionExtension({ row }: ExtensionProps) {
   );
 }
 
-async function InternshipExtension({ row }: ExtensionProps) {
-  const supabase = await createClient();
-  const { data } = await supabase.from("internship_logs").select("hours").eq("internship_id", row.id);
-  const done = ((data ?? []) as { hours: number }[]).reduce((s, l) => s + Number(l.hours || 0), 0);
-  const planned = Number(row.planned_hours ?? 0);
-  return (
-    <Card>
-      <CardHeader><CardTitle className="flex items-center gap-2"><CalendarClock className="size-4 text-primary" /> Horas do estágio</CardTitle><span className="text-sm tabular-nums">{formatNumber(done, 1)} / {planned ? formatNumber(planned, 1) : "—"} h</span></CardHeader>
-      <CardContent><Progress value={planned ? (done / planned) * 100 : 0} label="Horas cumpridas" /><p className="mt-2 text-xs text-muted-foreground">Horas cumpridas = soma dos registros de estágio.</p></CardContent>
-    </Card>
-  );
-}
-
 function CitationExtension({ row }: ExtensionProps) {
   const ref = generateAbntReference(row as never);
   return (
@@ -225,6 +212,5 @@ export const DETAIL_EXTENSIONS: Record<string, Extension> = {
   anatomical_structures: studyTools("anatomical_structures", ["flashcards", "questoes"]),
   flashcards: FlashcardExtension,
   questions: QuestionExtension,
-  internships: InternshipExtension,
   citations: CitationExtension,
 };

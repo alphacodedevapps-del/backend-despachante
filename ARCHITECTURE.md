@@ -21,7 +21,7 @@ Princípios: **o banco é a fonte de verdade da autorização** (RLS em todas as
 
 ## Motor genérico de entidades
 
-`src/modules/entities/definitions.ts` descreve 37 entidades (campos, tipos, opções, referências, seções, avisos, regras). A partir dele:
+`src/modules/entities/definitions.ts` descreve 27 entidades (campos, tipos, opções, referências, seções, avisos, regras). A partir dele:
 
 | Saída | Onde |
 |---|---|
@@ -31,7 +31,7 @@ Princípios: **o banco é a fonte de verdade da autorização** (RLS em todas as
 | Listagem (busca, filtros, favoritos, paginação, status inline, mobile) | `app/(app)/[entity]/page.tsx` |
 | Detalhe (seções, registros vinculados, relacionados, arquivos, IA) | `app/(app)/[entity]/[id]/page.tsx` |
 
-**Visões** (`ENTITY_VIEWS`) expõem subconjuntos de uma tabela como páginas próprias (ex.: Reuniões, Aulas e palestras, Eventos e congressos → `league_activities`). **Extensões** (`extensions.tsx`) adicionam blocos específicos ao detalhe (ABNT e coleções no artigo, etapas no projeto, progresso na disciplina, revisão no flashcard, horas no estágio, ferramentas de IA). **Listas customizadas** (`custom-lists.tsx`) adicionam Kanban de projetos, banner de revisão, "TESTAR MEUS CONHECIMENTOS" e resumo de horas.
+**Visões** (`ENTITY_VIEWS`) expõem subconjuntos de uma tabela como páginas próprias (ex.: Projetos de pesquisa → `projects`; Projetos e atividades da liga → `league_activities`). **Extensões** (`extensions.tsx`) adicionam blocos específicos ao detalhe (ABNT e coleções no artigo, etapas no projeto, progresso na disciplina, revisão no flashcard, ferramentas de IA). **Listas customizadas** (`custom-lists.tsx`) adicionam Kanban de projetos, banner de revisão e "TESTAR MEUS CONHECIMENTOS". O formulário de artigos (novo/editar) usa `research/article-import.tsx`, que adiciona a leitura de imagens pela IA.
 
 ## Workspaces e autorização
 

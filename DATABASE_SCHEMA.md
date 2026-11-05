@@ -39,26 +39,19 @@ PostgreSQL (Supabase) com UUID, `created_at`/`updated_at`, `workspace_id`, `crea
 | `clinical_tests` | Testes especiais | /testes | — |
 | `protocols` | Protocolos clínicos | /protocolos | — |
 | `medications` | Farmacologia | /farmacologia | — |
-| `glossary_terms` | Glossário técnico | /glossario | — |
 | `clinical_cases` | Casos clínicos | /casos-clinicos | — |
 | `clinical_assessments` | Avaliações clínicas | /avaliacoes-clinicas | case_id → clinical_cases |
 | `clinical_plans` | Planejamento terapêutico | /planejamento-terapeutico | case_id → clinical_cases |
 | `clinical_interventions` | Intervenções | /intervencoes | case_id → clinical_cases, exercise_id → exercises |
 | `clinical_evolutions` | Evoluções | /evolucoes | case_id → clinical_cases |
-| `clinical_conducts` | Biblioteca de condutas | /condutas | — |
 | `flashcards` | Flashcards | /flashcards | subject_id → subjects |
 | `questions` | Banco de questões | /questoes | subject_id → subjects |
-| `study_goals` | Metas acadêmicas | /metas-academicas | subject_id → subjects |
 | `projects` | Trabalhos e projetos | /projetos | subject_id → subjects |
-| `league_members` | Membros da liga | /liga-membros | — |
-| `league_activities` | Atividades da liga | /liga-atividades | — |
-| `internships` | Estágios | /estagios | — |
-| `internship_logs` | Registros de estágio | /registros-estagio | internship_id → internships |
-| `certificates` | Certificados e cursos | /certificados | — |
-| `complementary_activities` | Horas complementares | /horas-complementares | certificate_id → certificates |
-| `portfolio_items` | Portfólio | /portfolio | — |
-| `professional_goals` | Metas profissionais | /metas-profissionais | — |
+| `league_activities` | Projetos e atividades da liga | /liga-atividades | — |
+
 Todas possuem `tags text[]` quando aplicável, `is_favorite` quando o módulo tem favoritos, e colunas de sistema específicas (ex.: `flashcards.ease_factor`, `interval_days`, `next_review_at`; `tasks.completed_at`).
+
+Tabelas removidas na migration 0006 (escopo simplificado): `study_goals`, `glossary_terms`, `clinical_conducts`, `league_members`, `league_profiles`, `certificates`, `complementary_activities`, `internships`, `internship_logs`, `portfolio_items`, `professional_goals`.
 
 Regras de integridade relevantes:
 - `clinical_cases`: caso real exige `anonymization_confirmed`.
@@ -77,7 +70,6 @@ Regras de integridade relevantes:
 | `project_stages` | etapas personalizadas (progresso) |
 | `flashcard_reviews` | histórico de revisões |
 | `quizzes`, `quiz_questions`, `quiz_attempts` | simulados, questões sorteadas e tentativas corrigidas no servidor |
-| `league_profiles` | informações gerais da liga (um por workspace) |
 
 ## IA
 
@@ -96,6 +88,6 @@ Regras de integridade relevantes:
 ## Exclusões
 
 - Excluir workspace → cascata em todo o conteúdo, membros, convites, trechos e índice (arquivos do Storage são removidos pela aplicação antes).
-- Excluir registro → trigger remove `entity_links` e `search_index`; filhos com `on delete cascade` (fichamentos, avaliações/planos/intervenções/evoluções do caso, registros de estágio).
+- Excluir registro → trigger remove `entity_links` e `search_index`; filhos com `on delete cascade` (fichamentos, avaliações/planos/intervenções/evoluções do caso).
 - Excluir documento → objeto do Storage removido primeiro; trechos/embeddings em cascata.
 - Excluir conta → `auth.users` em cascata (perfil, workspaces próprios); conteúdo em workspaces de terceiros fica sem autoria (`set null`).

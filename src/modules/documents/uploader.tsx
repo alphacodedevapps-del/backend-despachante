@@ -10,7 +10,7 @@ import { Input, Label, NativeSelect } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { formatBytes } from "@/lib/utils/format";
 import { ACCEPT_ATTR, DOCUMENT_CATEGORIES, MAX_UPLOAD_BYTES, resolveMime } from "./constants";
-import { createUploadAction, finalizeUploadAction } from "./actions";
+import { uploadDocument } from "./upload-client";
 
 interface Item {
   file: File;
@@ -18,26 +18,6 @@ interface Item {
   progress: number;
   status: "pendente" | "enviando" | "concluido" | "erro";
   error?: string;
-}
-
-/** Envia o arquivo via XHR para acompanhar o progresso real. */
-function putWithProgress(url: string, file: File, onProgress: (p: number) => void): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.open("PUT", url);
-    const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    if (anon) xhr.setRequestHeader("apikey", anon);
-    xhr.setRequestHeader("x-upsert", "false");
-    xhr.upload.onprogress = (e) => {
-      if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100));
-    };
-    xhr.onload = () => (xhr.status >= 200 && xhr.status < 300 ? resolve() : reject(new Error(`Falha no envio (${xhr.status}).`)));
-    xhr.onerror = () => reject(new Error("Erro de rede durante o envio."));
-    const body = new FormData();
-    body.append("cacheControl", "3600");
-    body.append("", file);
-    xhr.send(body);
-  });
 }
 
 export function DocumentUploader({ attachTo, folderId, subjectId, folders, subjects, label = "Enviar arquivos", variant = "default" }: {
@@ -86,20 +66,11 @@ export function DocumentUploader({ attachTo, folderId, subjectId, folders, subje
       if (it.status === "concluido") continue;
       update(i, { status: "enviando", progress: 0, error: undefined });
       try {
-        const res = await createUploadAction({
-          fileName: it.file.name,
-          mimeType: it.file.type,
-          size: it.file.size,
-          title: it.title.trim() || it.file.name,
-          category,
-          folderId: folder || null,
-          subjectId: subject || null,
-          attachTo: attachTo ?? null,
-        });
-        if (!res.ok) throw new Error(res.error);
-        await putWithProgress(res.data.signedUrl, it.file, (p) => update(i, { progress: p }));
-        const fin = await finalizeUploadAction(res.data.documentId, attachTo ?? null);
-        if (!fin.ok) throw new Error(fin.error);
+        await uploadDocument(
+          it.file,
+          { title: it.title.trim() || it.file.name, category, folderId: folder || null, subjectId: subject || null, attachTo: attachTo ?? null },
+          (p) => update(i, { progress: p }),
+        );
         update(i, { status: "concluido", progress: 100 });
         ok++;
       } catch (e) {

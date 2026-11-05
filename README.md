@@ -1,6 +1,6 @@
 # Central Acadêmica — Fisioterapia
 
-Plataforma web para acompanhar a trajetória acadêmica, científica, clínica e profissional de estudantes de Fisioterapia: disciplinas, biblioteca digital, artigos e fichamentos, patologias, exercícios, testes especiais, casos clínicos anonimizados, liga acadêmica, agenda, simulados com revisão espaçada, estágios, portfólio e um **Assistente acadêmico com IA (RAG)** que consulta somente os materiais autorizados do usuário.
+Plataforma web para organizar a trajetória acadêmica, científica e clínica de estudantes de Fisioterapia: disciplinas, biblioteca digital, artigos e fichamentos (com **importação de artigo por foto/imagem**), patologias, exercícios, testes especiais, casos clínicos anonimizados, liga acadêmica (traumatologia, ortopedia e projetos), agenda, simulados com revisão espaçada e um **Assistente acadêmico com IA (RAG)** que consulta somente os materiais autorizados do usuário.
 
 **Stack:** Next.js 16 (App Router) · React 19 · TypeScript strict · Tailwind CSS 4 · componentes no estilo shadcn/ui (Radix) · Lucide · Supabase (PostgreSQL, Auth, Storage, RLS) · pgvector · React Hook Form + Zod · Recharts · date-fns · Vitest.
 
@@ -28,7 +28,7 @@ cp .env.example .env.local   # preencha os valores (veja a seção 4)
 2. **Extensões:** o projeto já possui `pgcrypto`, `pg_trgm`, `unaccent` e `vector` disponíveis (as migrations as habilitam no schema `extensions`).
 3. **Aplique as migrations** (em ordem):
    - Com a CLI: `npx supabase link --project-ref SEU_REF` e depois `npx supabase db push`; **ou**
-   - No *SQL Editor*, execute o conteúdo de cada arquivo de `supabase/migrations/` na ordem numérica.
+   - No *SQL Editor*, cole e execute `supabase/setup.sql` (todas as migrations em um único arquivo).
 4. **Auth → URL Configuration:** defina *Site URL* (ex.: `https://seu-dominio`) e adicione `https://seu-dominio/auth/callback` em *Redirect URLs* (confirmação de e-mail e redefinição de senha).
 5. **Auth → Providers → Email:** mantenha *Confirm email* ativado (recomendado).
 6. Os buckets de Storage `documents` (50 MB, PDF/DOCX/PPTX/XLSX/PNG/JPG) e `avatars` (2 MB, PNG/JPG) e suas políticas são criados pela migration `…003`. Ambos são **privados**.
@@ -38,10 +38,11 @@ cp .env.example .env.local   # preencha os valores (veja a seção 4)
 | Arquivo | Conteúdo |
 |---|---|
 | `20260101000001_core.sql` | perfis, preferências, workspaces, membros, convites, configurações, auditoria, funções de autorização, índice de busca, relacionamentos, notificações, RLS do núcleo |
-| `20260101000002_entities.sql` | 37 tabelas de conteúdo **geradas** a partir de `src/modules/entities/definitions.ts` (colunas, CHECKs, FKs, índices, triggers e RLS) |
+| `20260101000002_entities.sql` | 27 tabelas de conteúdo **geradas** a partir de `src/modules/entities/definitions.ts` (colunas, CHECKs, FKs, índices, triggers e RLS) |
 | `20260101000003_documents_studies_extras.sql` | documentos, coleções, etapas de projeto, revisões de flashcards, simulados, perfil da liga, notificações automáticas, Storage |
 | `20260101000004_ai.sql` | conversas, mensagens, uso de IA, trechos de documentos, fila de processamento, busca textual em trechos |
 | `20260101000005_pgvector.sql` | coluna `embedding vector(1536)`, índice HNSW e busca híbrida `match_document_chunks` |
+| `20260101000006_scope_simplification.sql` | remove os módulos descontinuados (metas, glossário, condutas, membros/certificados da liga, desenvolvimento profissional) e ajusta notificações |
 
 Se alterar o registro de entidades, regenere a migration de conteúdo: `node scripts/generate-entity-sql.ts` (em produção, crie **nova** migration com o `ALTER TABLE` correspondente em vez de editar uma já aplicada).
 
@@ -82,7 +83,7 @@ Crie uma conta em `/cadastro`. Um **workspace pessoal privado** é criado automa
 ```bash
 npm run typecheck  # TypeScript strict
 npm run lint       # ESLint (config do Next)
-npm test           # Vitest: regras de domínio, validação, permissões, IA (45 testes)
+npm test           # Vitest: regras de domínio, validação, permissões, IA (46 testes)
 npm run test:db    # migrations + RLS em PostgreSQL local com stub do Supabase (63 asserções)
 npm run build      # build de produção
 ```

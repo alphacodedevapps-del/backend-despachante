@@ -8,6 +8,8 @@ import { resolveRoute } from "@/modules/entities/resolve";
 import { getRecord, recordTitle, referenceOptions } from "@/modules/entities/queries";
 import { initialFormValues } from "@/modules/entities/schema";
 import { EntityForm } from "@/modules/entities/components/entity-form";
+import { ArticleImportForm } from "@/modules/research/article-import";
+import { publicAiStatus } from "@/lib/ai/config";
 
 type Params = Promise<{ entity: string; id: string }>;
 
@@ -47,7 +49,11 @@ export default async function EditEntityPage({ params }: { params: Params }) {
   return (
     <div className="mx-auto max-w-4xl">
       {header}
-      <EntityForm entityKey={entity.key} mode="edit" recordId={p.id} initialValues={initialFormValues(entity, rec.row)} refOptions={refOptions} cancelHref={`/${entity.slug}/${p.id}`} />
+      {entity.key === "articles" ? (
+        <ArticleImportForm mode="edit" recordId={p.id} initialValues={initialFormValues(entity, rec.row)} refOptions={refOptions} cancelHref={`/${entity.slug}/${p.id}`} aiConfigured={publicAiStatus().chatConfigured} />
+      ) : (
+        <EntityForm entityKey={entity.key} mode="edit" recordId={p.id} initialValues={initialFormValues(entity, rec.row)} refOptions={refOptions} cancelHref={`/${entity.slug}/${p.id}`} />
+      )}
     </div>
   );
 }
