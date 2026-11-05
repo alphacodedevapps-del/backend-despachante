@@ -16,7 +16,7 @@ export function getAiConfig() {
   const openaiKey = process.env.OPENAI_API_KEY ?? "";
   const googleKey = process.env.GEMINI_API_KEY ?? "";
   const chatKey = chatProvider === "anthropic" ? anthropicKey : chatProvider === "openai" ? openaiKey : chatProvider === "google" ? googleKey : "";
-  const defaultModel = chatProvider === "anthropic" ? "claude-opus-5-5" : chatProvider === "google" ? "gemini-2.5-flash" : "";
+  const defaultModel = chatProvider === "anthropic" ? "claude-opus-5-5" : chatProvider === "google" ? "gemini-3.5-flash" : "";
   return {
     chatProvider,
     chatModel: process.env.AI_CHAT_MODEL || defaultModel,
